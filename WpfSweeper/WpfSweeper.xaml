@@ -9,9 +9,9 @@
     <Grid>
         <Canvas x:Name="cnvField" Margin="10,58,10,10" MouseRightButtonUp="cnvField_MouseRightButtonUp" MouseLeftButtonDown="cnvField_MouseLeftButtonDown" MouseLeftButtonUp="cnvField_MouseLeftButtonUp"/>
         <Menu Height="20" VerticalAlignment="Top">
-            <MenuItem Header="Datei">
-                <MenuItem x:Name="mnuNew" Header="Neu"/>
-                <MenuItem Header="Beenden"/>
+            <MenuItem Header="Game">
+                <MenuItem x:Name="mnuNew" Header="New"/>
+                <MenuItem Header="Exit"/>
             </MenuItem>
         </Menu>
         <Label x:Name="lblMines" Content="10" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Width="50"/>

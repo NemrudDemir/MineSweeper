@@ -4,8 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SweeperModel
 {
@@ -17,37 +15,22 @@ namespace SweeperModel
         /// <summary>
         /// Minimum Width
         /// </summary>
-        public static int MinX {
-            get { return 9; }
-        }
+        public static int MinX => 9;
 
         /// <summary>
         /// Minimum Height
         /// </summary>
-        public static int MinY {
-            get { return 9; }
-        }
+        public static int MinY => 9;
 
         /// <summary>
         /// Maximum Width
         /// </summary>
-        public static int MaxX {
-            get { return 30; }
-        }
+        public static int MaxX => 30;
 
         /// <summary>
         /// Maximum Height
         /// </summary>
-        public static int MaxY {
-            get { return 24; }
-        }
-
-        /// <summary>
-        /// Minimum Mines
-        /// </summary>
-        public static int MinMines {
-            get { return 10; }
-        }
+        public static int MaxY => 24;
 
         /// <summary>
         /// Gets the minimum mines 
@@ -57,7 +40,7 @@ namespace SweeperModel
         /// <returns></returns>
         public static int GetMinMines(int x, int y)
         {
-            return MinMines;
+            return 10;
         }
 
         /// <summary>
@@ -71,13 +54,11 @@ namespace SweeperModel
             return x * y - (x + y - 1);
         }
 
-        private Stopwatch stopWatch = new Stopwatch();
+        private readonly Stopwatch _stopWatch = new Stopwatch();
         /// <summary>
         /// Get Elapsed Milliseconds
         /// </summary>
-        public long GetTime {
-            get { return stopWatch.ElapsedMilliseconds; }
-        }
+        public long GetElapsedMilliseconds => _stopWatch.ElapsedMilliseconds;
 
         public int X {
             get;
@@ -94,33 +75,29 @@ namespace SweeperModel
         /// <summary>
         /// Indicator for how many mines left on the field
         /// </summary>
-        private int minesLeft;
         public int MinesLeft {
-            get { return minesLeft; }
+            get; private set;
         }
 
         /// <summary>
         /// Indicator for how many non-mines cells opened on the field
         /// </summary>
-        private int nonMinesOpened;
         public int NonMinesOpened {
-            get { return nonMinesOpened; }
+            get; private set;
         }
 
-        public Cell[][] Cells {
+        public Cell[][] Cells { //TODO Cells[,] ?!
             get; set;
         }
-        private bool initializedField = false;
+        private bool _isFieldInitialized;
 
-        private PointI lastOpenedPoint; //is required for redo operation
-        private bool isGameOver = false;
+        private PointI _lastOpenedPoint; //is required for undo operation
         public bool IsGameOver {
-            get { return isGameOver; }
+            get; private set;
         }
 
-        private bool isGameWon = false;
         public bool IsGameWon {
-            get { return isGameWon; }
+            get; private set;
         }
 
         /// <summary>
@@ -129,69 +106,66 @@ namespace SweeperModel
         /// <param name="x">width</param>
         /// <param name="y">heigh</param>
         /// <param name="mines">number of mines</param>
-        public Field(int x, int y, int mines)
+        /// <param name="reversed">swaps width and height</param>
+        public Field(int x, int y, int mines, bool reversed = false)
         {
-            X = x;
-            Y = y;
-            MinesTotal = minesLeft = mines;
+            if(reversed) {
+                Y = x;
+                X = y;
+            } else {
+                X = x;
+                Y = y;
+            }
+            MinesTotal = MinesLeft = mines;
 
             if (mines > GetMaxMines(x, y))
                 throw new Exception("There are too many mines for the fieldsize!");
 
             //Initialize cells
-            Cells = new Cell[x][];
-            for (int i = 0; i < x; i++) {
-                Cells[i] = new Cell[Y];
-                for (int j = 0; j < y; j++)
-                    Cells[i][j] = new Cell();
+            Cells = new Cell[this.X][];
+            for (var row = 0; row < this.X; row++) {
+                Cells[row] = new Cell[this.Y];
+                for (var column = 0; column < this.Y; column++)
+                    Cells[row][column] = new Cell();
             }
         }
 
         /// <summary>
         /// Setting the mines on the field
         /// </summary>
-        /// <param name="midPoint">point hit</param>
-        public void SetMines(PointI midPoint)
+        /// <param name="hitPoint">point hit</param>
+        public void SetMines(PointI hitPoint)
         {
-            initializedField = true;
-            int minesToSet = MinesTotal; //Anzahl Minen die gesetzt werden dürfen
-            int[] protectedCells = GetNearbyCellPoints(midPoint, true).Select(x => GenerateNumberFromPoint(x)).ToArray(); //Die angeklickte Zelle sowie die umstehenden Zellen sollen keine Minen sein!
-            int cellsAvailable = X * Y - protectedCells.Length; //Anzahl der Potenziellen Zellen welche eine Mine beinhalten können
-            List<int> minesAt = new List<int>(); //Liste der Indizes, in denen sich Minen beinhalten
-            minesAt.AddRange(protectedCells); //Sind nur Pseudo-Einträge, da diese Zellen keine Mine beinhalten dürfen - welche später wieder rausgefiltert werden
-            while(minesToSet > 0) {
-                //Indizes für jede Mine generieren
-                Random random = new Random(Guid.NewGuid().GetHashCode());
-                int mineIndex = random.Next(cellsAvailable);
-                int index = 0;
-                foreach(var mI in minesAt) {
-                    if (mineIndex >= mI)
-                        mineIndex++;
-                    else
-                        break;
-                    index++;
-                }
-                minesAt.Insert(index, mineIndex);
+            var minesToSet = MinesTotal;
+            var potentialMineIndices = new List<PointI>();
+            for (var y = 0; y < Y; y++)
+                for (var x = 0; x < X; x++)
+                    potentialMineIndices.Add(new PointI(x, y));
+
+            int[] protectedCellIndices = GetNearbyCellPoints(hitPoint, true).
+                Select(GenerateNumberFromPoint).OrderByDescending(number => number).ToArray(); //TODO: doesnt work right?!
+            foreach(var index in protectedCellIndices)
+                potentialMineIndices.RemoveAt(index);
+
+            var random = new Random();
+            while (minesToSet > 0) { //Create indices for mines
+                int rndIndex = random.Next(potentialMineIndices.Count);
+                SetMine(potentialMineIndices[rndIndex]);
+                potentialMineIndices.RemoveAt(rndIndex);
                 minesToSet--;
-                cellsAvailable--;
             }
-
-            foreach(int mine in minesAt)
-                if(!protectedCells.Contains(mine)) //Pseudo Einträge sind keine Minen!
-                    SetMine(mine);
-
-            stopWatch.Start();
+            _isFieldInitialized = true;
+            _stopWatch.Start();
         }
 
         /// <summary>
         /// Set cell as mine
         /// </summary>
-        /// <param name="index">Index of the mine</param>
-        private void SetMine(int index)
+        /// <param name="point">Point of the mine</param>
+        private void SetMine(PointI point)
         {
-            var point = GeneratePointFromNumber(index);
             Cells[point.X][point.Y].SetAsMine();
-            UpdateNearbyCells(point.X, point.Y);
+            UpdateNearbyCells(point);
         }
 
         /// <summary>
@@ -202,20 +176,20 @@ namespace SweeperModel
         /// <returns></returns>
         private PointI[] GetNearbyCellPoints(PointI midPoint, bool withOwnCell=false)
         {
-            int x = midPoint.X;
-            int y = midPoint.Y;
-            List<PointI> nearbyCells = new List<PointI>();
-            nearbyCells.Add(GetCellPoint(x - 1, y - 1)); //top left
-            nearbyCells.Add(GetCellPoint(x, y - 1)); //top
-            nearbyCells.Add(GetCellPoint(x + 1, y - 1)); //top right
-            nearbyCells.Add(GetCellPoint(x - 1, y)); //left
+            var x = midPoint.X;
+            var y = midPoint.Y;
+            var nearbyCells = new List<PointI>() {
+                GetCellPoint(x - 1, y - 1), //topleft
+                GetCellPoint(x, y - 1), //top
+                GetCellPoint(x + 1, y - 1), //topright
+                GetCellPoint(x - 1, y), //left
+                GetCellPoint(x + 1, y), //right
+                GetCellPoint(x - 1, y + 1), //bottom left
+                GetCellPoint(x, y + 1), //bottom
+                GetCellPoint(x + 1, y + 1) //bottom right
+            };
             if (withOwnCell)
                 nearbyCells.Add(midPoint); //own
-            nearbyCells.Add(GetCellPoint(x + 1, y)); // right
-            nearbyCells.Add(GetCellPoint(x - 1, y + 1)); //bottom left
-            nearbyCells.Add(GetCellPoint(x, y + 1)); //bottom
-            nearbyCells.Add(GetCellPoint(x + 1, y + 1)); //bottom right
-
             return nearbyCells.Where(point => point != null).ToArray();
         }
 
@@ -225,9 +199,9 @@ namespace SweeperModel
         /// <param name="point">middle Point</param>
         /// <param name="withOwnCell">Adds the given point-cell to the collection</param>
         /// <returns></returns>
-        private Cell[] GetNearbyCells(PointI point, bool withOwnCell=false)
+        private IEnumerable<Cell> GetNearbyCells(PointI point, bool withOwnCell=false)
         {
-            return GetNearbyCellPoints(point, withOwnCell).Select(cPoint => Cells[cPoint.X][cPoint.Y]).ToArray();
+            return GetNearbyCellPoints(point, withOwnCell).Select(cPoint => Cells[cPoint.X][cPoint.Y]);
         }
 
         /// <summary>
@@ -246,11 +220,10 @@ namespace SweeperModel
         /// <summary>
         /// Update the values of the nearby cells
         /// </summary>
-        /// <param name="x">x coordinate of cell</param>
-        /// <param name="y">y coordinate of cell</param>
-        private void UpdateNearbyCells(int x, int y)
+        /// <param name="point">point of cell</param>
+        private void UpdateNearbyCells(PointI point)
         {
-            foreach (var nearbyCell in GetNearbyCells(new PointI(x, y)))
+            foreach (var nearbyCell in GetNearbyCells(point))
                 nearbyCell.AddNearbyMine();
         }
         
@@ -282,13 +255,12 @@ namespace SweeperModel
         /// <returns>the manipulated points</returns>
         public List<PointI> DoOperation(PointI point, Mode mode)
         {
-            if (isGameOver || isGameWon)
+            if (IsGameOver || IsGameWon)
                 return new List<PointI>();
-            if (!initializedField)
+            if (!_isFieldInitialized)
                 SetMines(point);
 
-            List<PointI> changedCells = new List<PointI>();
-            var OperationCell = Cells[point.X][point.Y];
+            var changedCells = new List<PointI>();
             switch (mode) {
                 case Mode.Open:
                     OpenCell(point, ref changedCells);
@@ -312,17 +284,17 @@ namespace SweeperModel
         private void OpenCell(PointI point, ref List<PointI> changedCells)
         {
             Cell cell = Cells[point.X][point.Y];
-            if(cell.Status == CellStatus.Covered && !isGameOver) { //only covered cells can be opened
-                lastOpenedPoint = point;
+            if(cell.Status == CellStatus.Covered && !IsGameOver) { //only covered cells can be opened
+                _lastOpenedPoint = point;
                 cell.Status = CellStatus.Opened;
                 changedCells.Add(point);
-                nonMinesOpened++;
+                NonMinesOpened++;
                 if (cell.Value == CellValue.Mine) { //game over
-                    stopWatch.Stop();
-                    isGameOver = true;
+                    _stopWatch.Stop();
+                    IsGameOver = true;
                 } else if (NonMinesOpened + MinesTotal == X*Y) { //game won
-                    stopWatch.Stop();
-                    isGameWon = true;
+                    _stopWatch.Stop();
+                    IsGameWon = true;
                 } else if (cell.Value == CellValue.Empty) { //if there are no nearby mines, open all nearby cells automatically
                     foreach (var nearbyCellPoint in GetNearbyCellPoints(point))
                         OpenCell(nearbyCellPoint, ref changedCells);
@@ -336,17 +308,15 @@ namespace SweeperModel
         /// <param name="point">Point for the operation</param>
         private void ToggleFlag(PointI point)
         {
-            Cell cell = Cells[point.X][point.Y];
+            var cell = Cells[point.X][point.Y];
             switch (cell.Status) {
                 case CellStatus.Covered:
                     cell.Status = CellStatus.Flagged;
-                    minesLeft--;
+                    MinesLeft--;
                     break;
                 case CellStatus.Flagged:
                     cell.Status = CellStatus.Covered;
-                    minesLeft++;
-                    break;
-                default:
+                    MinesLeft++;
                     break;
             }
         }
@@ -358,7 +328,7 @@ namespace SweeperModel
         /// <param name="changedCells">the manipulated points</param>
         private void OpenNearbyCells(PointI point, ref List<PointI> changedCells)
         {
-            Cell cell = Cells[point.X][point.Y];
+            var cell = Cells[point.X][point.Y];
             if (cell.Status == CellStatus.Covered) {
                 OpenCell(point, ref changedCells); //if the cell is still covered, open it
             } else if (cell.Status == CellStatus.Opened) {
@@ -375,16 +345,17 @@ namespace SweeperModel
         }
 
         /// <summary>
-        /// On game over, redo the last operation, so that the game keeps going
+        /// On game over, undo the last operation, so that the game keeps going
         /// </summary>
         /// <returns>the manipulated cell</returns>
-        public List<PointI> Redo()
+        public List<PointI> Undo()
         {
             if(IsGameOver) {
-                isGameOver = false;
-                stopWatch.Start();
-                Cells[lastOpenedPoint.X][lastOpenedPoint.Y].Status = CellStatus.Covered;
-                return new List<PointI>() { lastOpenedPoint };
+                IsGameOver = false;
+                _stopWatch.Start();
+                Cells[_lastOpenedPoint.X][_lastOpenedPoint.Y].Status = CellStatus.Covered;
+                NonMinesOpened--;
+                return new List<PointI>() { _lastOpenedPoint };
             }
             return new List<PointI>();
         }
@@ -394,11 +365,11 @@ namespace SweeperModel
         /// </summary>
         public enum Standards
         {
-            [Description("Anfänger")]
+            [Description("Beginner")]
             Beginner,
-            [Description("Fortgeschritten")]
+            [Description("Intermediate")]
             Intermediate,
-            [Description("Experte")]
+            [Description("Expert")]
             Expert
         }
 
@@ -416,19 +387,32 @@ namespace SweeperModel
         /// Gets the Field for a standard-field
         /// </summary>
         /// <param name="predefinedField">Standard field</param>
-        /// <returns></returns>
-        public static Field GetStandardsField(Standards predefinedField) //https://www.bernhard-gaul.de/spiele/minesweeper/minesweeper-spielregel.html
+        /// <param name="reversed">swaps height and width</param>
+        /// <returns>returns a field with certain options</returns>
+        public static Field GetStandardsField(Standards predefinedField, bool reversed = false) //https://www.bernhard-gaul.de/spiele/minesweeper/minesweeper-spielregel.html
         {
             switch (predefinedField) {
                 case Standards.Beginner:
-                    return new Field(9, 9, 10);
+                    return new Field(9, 9, 10, reversed);
                 case Standards.Intermediate:
-                    return new Field(16, 16, 40);
+                    return new Field(16, 16, 40, reversed);
                 case Standards.Expert:
-                    return new Field(30, 16, 99);
+                    return new Field(30, 16, 99, reversed);
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Check if Field-Coordinate exists in Current Field
+        /// </summary>
+        /// <param name="fieldCoordinate"></param>
+        /// <returns></returns>
+        public bool FieldExists(PointI fieldCoordinate)
+        {
+            if (fieldCoordinate.X < 0 || fieldCoordinate.Y < 0 || fieldCoordinate.X >= this.X || fieldCoordinate.Y >= this.Y)
+                return false;
+            return true;
         }
     }
 }
@@ -443,7 +427,7 @@ public static class Extensions
     /// <returns>Description of the enum if available otherwise its name</returns>
     public static string ToDescription<T>(this T e) where T : IConvertible
     {
-        Type type = e.GetType();
+        var type = e.GetType();
         Array values = Enum.GetValues(type);
 
         foreach (int val in values) {

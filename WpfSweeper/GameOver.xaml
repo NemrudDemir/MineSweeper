@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfSweeper"
         mc:Ignorable="d"
-        Title="GameOver" Height="249.428" Width="305.142" WindowStartupLocation="CenterOwner" Closing="Window_Closing" ResizeMode="NoResize">
+        Title="YOU LOSE" Height="249.428" Width="305.142" WindowStartupLocation="CenterOwner" Closing="Window_Closing" ResizeMode="NoResize">
     <Grid>
-        <Button x:Name="cmdRedo" Content="Letzten Zug zurückziehen" Margin="0,0,10,10" Click="cmdRedo_Click" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="145"/>
-        <Button x:Name="cmdGameOver" Content="Minen einblenden" Margin="10,0,0,10" HorizontalAlignment="Left" Width="112" Height="20" VerticalAlignment="Bottom" Click="cmdGameOver_Click"/>
-        <Label Content="Mehr Glück nächstes Mal!" Margin="10,10,10,0" VerticalAlignment="Top" FontSize="18"/>
-        <Label Content="Zeit" HorizontalAlignment="Left" Margin="10,49,0,0" VerticalAlignment="Top" Width="134" BorderBrush="Black" BorderThickness="1,1,0,1"/>
-        <Label x:Name="lblTime" Content="Zeit" Margin="0,49,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="145" HorizontalContentAlignment="Right" BorderThickness="0,1,1,1" BorderBrush="Black"/>
+        <Button x:Name="cmdUndo" Content="Undo last move" Margin="0,0,10,10" Click="cmdUndo_Click" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="145"/>
+        <Button x:Name="cmdGameOver" Content="Show mines" Margin="10,0,0,10" HorizontalAlignment="Left" Width="112" Height="20" VerticalAlignment="Bottom" Click="cmdGameOver_Click"/>
+        <Label Content="More luck next time!" Margin="10,10,10,0" VerticalAlignment="Top" FontSize="18"/>
+        <Label Content="Time" HorizontalAlignment="Left" Margin="10,49,0,0" VerticalAlignment="Top" Width="134" BorderBrush="Black" BorderThickness="1,1,0,1"/>
+        <Label x:Name="lblTime" Content="Time" Margin="0,49,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="145" HorizontalContentAlignment="Right" BorderThickness="0,1,1,1" BorderBrush="Black"/>
 
     </Grid>
 </Window>

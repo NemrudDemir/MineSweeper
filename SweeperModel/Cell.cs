@@ -1,51 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SweeperModel
+﻿namespace SweeperModel
 {
     public class Cell
     {
-        CellValue value;
+        /// <summary>
+        /// Gets the Value of the Cell
+        /// </summary>
         public CellValue Value {
-            get { return value; }
+            get; private set;
         }
 
+        /// <summary>
+        /// Gets the Status of the Cell
+        /// </summary>
         public CellStatus Status {
-            get; set;
+            get; internal set;
         }
 
         public Cell()
         {
-            this.value = CellValue.Empty;
-            this.Status = CellStatus.Covered;
-        }
-
-        /// <summary>
-        /// For pseudo cells only!
-        /// </summary>
-        public Cell(CellValue value)
-        {
-            this.value = value;
+            Value = CellValue.Empty;
+            Status = CellStatus.Covered;
         }
 
         /// <summary>
         /// Sets this cell as mine
         /// </summary>
-        public void SetAsMine()
+        internal void SetAsMine()
         {
-            value = CellValue.Mine;
+            Value = CellValue.Mine;
         }
 
         /// <summary>
         /// Increments the value of this cell
         /// </summary>
-        public void AddNearbyMine()
+        internal void AddNearbyMine()
         {
-            if (value != CellValue.Mine)
-                value++;
+            if (Value != CellValue.Mine)
+                Value++;
         }
     }
 
@@ -56,7 +47,7 @@ namespace SweeperModel
     {
         Covered,
         Flagged,
-        Opened
+        Opened,
     }
 
     /// <summary>
@@ -73,6 +64,6 @@ namespace SweeperModel
         Five = 5,
         Six = 6,
         Seven = 7,
-        Eight = 8
+        Eight = 8,
     }
 }

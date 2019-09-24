@@ -1,26 +1,19 @@
 ﻿using SweeperModel;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-/// <summary>
-/// Just a bonus ;)
-/// </summary>
 namespace CmdSweeper
 {
     class Program
     {
-        static void Main(string[] args)
+        private static Field _field;
+        private static PointI _focusedPoint;
+
+        static void Main()
         {
             NewGame();
         }
 
-        static Field field;
-        static PointI focusedPoint;
-
-        static void NewGame()
+        private static void NewGame()
         {
             Console.Clear();
             Console.WriteLine($"Breite: ({Field.MinX} - {Field.MaxX})");
@@ -35,55 +28,75 @@ namespace CmdSweeper
                 Console.WriteLine("Angabe ungültig, bitte erneut versuchen");
             }
 
-            Console.WriteLine($"Anzahl der Minen: ({Field.MinMines} - {Field.GetMaxMines(x,y)})");
+            Console.WriteLine($"Anzahl der Minen: ({Field.GetMinMines(x,y)} - {Field.GetMaxMines(x,y)})");
             int mines;
-            while (!int.TryParse(Console.ReadLine(), out mines) || mines < Field.MinMines || mines > Field.GetMaxMines(x, y)) {
+            while (!int.TryParse(Console.ReadLine(), out mines) || mines < Field.GetMinMines(x,y) || mines > Field.GetMaxMines(x, y))
                 Console.WriteLine("Angabe ungültig, bitte erneut versuchen");
-            }
 
             SetField(y, x, mines);
             NextStep();
         }
 
-        static void SetField(int x, int y, int mines)
+        private static void SetField(int x, int y, int mines)
         {
-            field = new Field(x, y, mines);
-            focusedPoint = new PointI(0,0);
+            _field = new Field(x, y, mines);
+            _focusedPoint = new PointI(0,0);
         }
 
-        static string[] newGameOptions = new string[] { "Erneut spielen", "Benutzerdefiniert", "Beenden" };
+        private static int _gameOverFocusedIndex;
+        private static readonly Option[] GameOverOptions = new [] {
+            new Option("Erneut spielen", Restart),
+            new Option("Benutzerdefiniert", NewGame),
+            new Option("Beenden", Exit)
+        };
 
-        static int gameOverIndexFocused = 0;
+        /// <summary>
+        /// Exits the application
+        /// </summary>
+        private static void Exit()
+        {
+            Environment.Exit(0);
+        }
+
+        /// <summary>
+        /// Starts a new game with the same game options
+        /// </summary>
+        private static void Restart()
+        {
+            
+            SetField(_field.X, _field.Y, _field.MinesTotal);
+        }
+
         static void NextStep()
         {
             Console.Clear();
-            var cells = field.Cells;
+            var cells = _field.Cells;
             foreach (var cellA in cells) {
                 foreach (var cell in cellA) {
                     string text = $"{GetCharForCell(cell)} ";
-                    if (cell == field.Cells[focusedPoint.X][focusedPoint.Y])
+                    if (cell == _field.Cells[_focusedPoint.X][_focusedPoint.Y])
                         Console.ForegroundColor = ConsoleColor.White;
                     Console.Write(text);
                 }
                 Console.WriteLine();
             }
-            if (field.IsGameOver ||field.IsGameWon) {
-                if (field.IsGameOver) {
+            if (_field.IsGameOver ||_field.IsGameWon) {
+                if (_field.IsGameOver) {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("GAME OVER!");
-                } else if(field.IsGameWon) {
+                } else if(_field.IsGameWon) {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("GAME WON!");
                 }
-                for (int i = 0; i < newGameOptions.Length; i++) {
+                for (int i = 0; i < GameOverOptions.Length; i++) {
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.BackgroundColor = ConsoleColor.Black;
-                    if (i == gameOverIndexFocused) {
+                    if (i == _gameOverFocusedIndex) {
                         var temp = Console.ForegroundColor;
                         Console.ForegroundColor = Console.BackgroundColor;
                         Console.BackgroundColor = temp;
                     }
-                    Console.Write(newGameOptions[i]);
+                    Console.Write(GameOverOptions[i].Caption);
                     Console.BackgroundColor = ConsoleColor.Black;
                     Console.Write("\t");
                 }
@@ -97,71 +110,70 @@ namespace CmdSweeper
         static void DoMove()
         {
             var key = Console.ReadKey();
-            switch (key.Key) {
+            switch (key.Key) { //TODO find better way for implementation
                 case ConsoleKey.W:
                 case ConsoleKey.UpArrow:
-                    if(focusedPoint.X == 0) {
+                    if(_focusedPoint.X == 0) {
                         DoMove();
                         return;
                     }
-                    focusedPoint.X--;
+                    _focusedPoint.X--;
                     break;
                 case ConsoleKey.A:
                 case ConsoleKey.LeftArrow:
-                    if (field.IsGameOver || field.IsGameWon) {
-                        if(gameOverIndexFocused == 0) {
+                    if (_field.IsGameOver || _field.IsGameWon) {
+                        if(_gameOverFocusedIndex == 0) {
                             DoMove();
                             return;
                         }
-                        gameOverIndexFocused--;
+                        _gameOverFocusedIndex--;
                     } else {
-                        if (focusedPoint.Y == 0) {
+                        if (_focusedPoint.Y == 0) {
                             DoMove();
                             return;
                         }
-                        focusedPoint.Y--;
+                        _focusedPoint.Y--;
                     }
                     break;
                 case ConsoleKey.S:
                 case ConsoleKey.DownArrow:
-                    if (focusedPoint.X == field.X-1) {
+                    if (_focusedPoint.X == _field.X-1) {
                         DoMove();
                         return;
                     }
-                    focusedPoint.X++;
+                    _focusedPoint.X++;
                     break;
                 case ConsoleKey.D:
                 case ConsoleKey.RightArrow:
-                    if (field.IsGameOver || field.IsGameWon) {
-                        if (gameOverIndexFocused == 2) {
+                    if (_field.IsGameOver || _field.IsGameWon) {
+                        if (_gameOverFocusedIndex == 2) {
                             DoMove();
                             return;
                         }
-                        gameOverIndexFocused++;
+                        _gameOverFocusedIndex++;
                     } else {
-                        if (focusedPoint.Y == field.Y - 1) {
+                        if (_focusedPoint.Y == _field.Y - 1) {
                             DoMove();
                             return;
                         }
-                        focusedPoint.Y++;
+                        _focusedPoint.Y++;
                     }
                     break;
                 case ConsoleKey.F:
                 case ConsoleKey.Insert:
-                    field.DoOperation(focusedPoint, Field.Mode.Flag);
+                    _field.DoOperation(_focusedPoint, Field.Mode.Flag);
                     break;
                 case ConsoleKey.Spacebar:
                 case ConsoleKey.Enter:
-                    if (field.IsGameOver || field.IsGameWon) {
-                        if(gameOverIndexFocused == 0) {
-                            SetField(field.X, field.Y, field.MinesTotal);
-                        } else if(gameOverIndexFocused == 1) {
-                            NewGame();
-                        } else {
-                            return;
-                        }
-                    } else
-                        field.DoOperation(focusedPoint, Field.Mode.Open);
+                    if (_field.IsGameOver || _field.IsGameWon) {
+                        GameOverOptions[_gameOverFocusedIndex].Action.Invoke();
+                    } else {
+                        var cell = _field.Cells[_focusedPoint.X][_focusedPoint.Y];
+                        if (cell.Status == CellStatus.Covered)
+                            _field.DoOperation(_focusedPoint, Field.Mode.Open);
+                        else if (cell.Status == CellStatus.Opened)
+                            _field.DoOperation(_focusedPoint, Field.Mode.OpenNearby);
+                    }
                     break;
                 default:
                     DoMove();
@@ -170,7 +182,7 @@ namespace CmdSweeper
             NextStep();
         }
 
-        static char GetCharForCell(Cell cell)
+        static char GetCharForCell(Cell cell) //TODO dont set the foregroundcolor here...
         {
             if (cell.Status == CellStatus.Covered) {
                 Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -192,19 +204,19 @@ namespace CmdSweeper
                         Console.ForegroundColor = ConsoleColor.Green;
                         return '2';
                     case CellValue.Three:
-                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.ForegroundColor = ConsoleColor.Yellow;
                         return '3';
                     case CellValue.Four:
                         Console.ForegroundColor = ConsoleColor.DarkBlue;
                         return '4';
                     case CellValue.Five:
-                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.ForegroundColor = ConsoleColor.Magenta;
                         return '5';
                     case CellValue.Six:
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         return '6';
                     case CellValue.Seven:
-                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.ForegroundColor = ConsoleColor.Red;
                         return '7';
                     case CellValue.Eight:
                         Console.ForegroundColor = ConsoleColor.DarkGray;

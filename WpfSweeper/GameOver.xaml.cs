@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
 
 namespace WpfSweeper
 {
@@ -23,10 +11,9 @@ namespace WpfSweeper
         {
             InitializeComponent();
             var seconds = milliseconds / 1000;
-            milliseconds %= 1000;
             var minutes = seconds / 60;
             seconds %= 60;
-            lblTime.Content = $"{minutes.ToString("00")}:{seconds.ToString("00")}"; //format is mm:ss
+            lblTime.Content = $"{minutes:00}:{seconds:00}"; //format is mm:ss
         }
         
         private void cmdGameOver_Click(object sender, RoutedEventArgs e)
@@ -34,7 +21,7 @@ namespace WpfSweeper
             DialogResult = true;
         }
 
-        private void cmdRedo_Click(object sender, RoutedEventArgs e)
+        private void cmdUndo_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
         }

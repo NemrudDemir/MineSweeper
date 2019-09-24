@@ -1,17 +1,5 @@
 ﻿using SweeperModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace WpfSweeper
 {
@@ -23,45 +11,48 @@ namespace WpfSweeper
         public CustomizeField(Field currentField)
         {
             InitializeComponent();
-            sldBreite.Minimum = Field.MinX;
-            sldBreite.Maximum = Field.MaxX;
-            sldHoehe.Minimum = Field.MinY;
-            sldHoehe.Maximum = Field.MaxY;
+            sldWidth.Minimum = Field.MinX;
+            sldWidth.Maximum = Field.MaxX;
+            sldHeight.Minimum = Field.MinY;
+            sldHeight.Maximum = Field.MaxY;
 
-            sldBreite.Value = currentField.X;
-            sldHoehe.Value = currentField.Y;
-            sldMinen.Value = currentField.MinesTotal;
+            sldWidth.Value = currentField.X;
+            sldHeight.Value = currentField.Y;
+            sldMines.Value = currentField.MinesTotal;
         }
 
-        private void sldBreite_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void SldWidth_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            lblBreite.Content = (int)sldBreite.Value;
+            lblBreite.Content = (int)sldWidth.Value;
             UpdateMaxMines();
         }
 
-        private void sldHoehe_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void SldHeight_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            lblHoehe.Content = (int)sldHoehe.Value;
+            lblHoehe.Content = (int)sldHeight.Value;
             UpdateMaxMines();
         }
 
         private void UpdateMaxMines()
         {
-            sldMinen.Minimum = Field.GetMinMines((int)sldBreite.Value, (int)sldHoehe.Value);
-            sldMinen.Maximum = Field.GetMaxMines((int)sldBreite.Value, (int)sldHoehe.Value);
+            sldMines.Minimum = Field.GetMinMines((int)sldWidth.Value, (int)sldHeight.Value);
+            var maxMines = Field.GetMaxMines((int)sldWidth.Value, (int)sldHeight.Value);
+            if (sldMines.Value > maxMines)
+                sldMines.Value = maxMines;
+            sldMines.Maximum = maxMines;
         }
 
-        private void sldMinen_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void SldMines_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            lblMinen.Content = (int)sldMinen.Value;
+            lblMines.Content = (int)sldMines.Value;
         }
 
-        private void cmdCancel_Click(object sender, RoutedEventArgs e)
+        private void CmdCancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
         }
 
-        private void cmdConfirm_Click(object sender, RoutedEventArgs e)
+        private void CmdConfirm_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;
         }
@@ -74,17 +65,17 @@ namespace WpfSweeper
 
         public int GetWidth()
         {
-            return (int)sldBreite.Value;
+            return (int)sldWidth.Value;
         }
 
         public int GetHeight()
         {
-            return (int)sldHoehe.Value;
+            return (int)sldHeight.Value;
         }
 
         public int GetMines()
         {
-            return (int)sldMinen.Value;
+            return (int)sldMines.Value;
         }
     }
 }

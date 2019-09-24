@@ -4,9 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfSweeper"
-        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
-        Title="CustomizeField" Height="199.714" Width="300" Closing="Window_Closing">
+        Title="CustomizeField" Height="199.714" Width="300" Closing="Window_Closing" WindowStartupLocation="CenterOwner">
     <Grid>
         <Grid Height="28" Margin="10,10,10,0" VerticalAlignment="Top">
             <Grid.ColumnDefinitions>
@@ -14,8 +13,8 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="30"/>
             </Grid.ColumnDefinitions>
-            <Slider x:Name="sldBreite" VerticalAlignment="Center" Margin="10,5" Height="18" Grid.Column="1" ValueChanged="sldBreite_ValueChanged"/>
-            <Label Grid.Column="0" Content="Breite" Margin="0,0,0,0"/>
+            <Slider x:Name="sldWidth" VerticalAlignment="Center" Margin="5,5,5,5" Height="18" Grid.Column="1" ValueChanged="SldWidth_ValueChanged"/>
+            <Label Grid.Column="0" Content="Width" Margin="0,0,188,0" Grid.ColumnSpan="2"/>
             <Label x:Name="lblBreite" Grid.Column="2" Content="99" Margin="0,0,0,0" HorizontalContentAlignment="Right"/>
         </Grid>
         <Grid Height="28" Margin="10,43,10,0" VerticalAlignment="Top">
@@ -24,8 +23,9 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="30"/>
             </Grid.ColumnDefinitions>
-            <Slider x:Name="sldHoehe" VerticalAlignment="Center" Margin="10,5" Height="18" Grid.Column="1" ValueChanged="sldHoehe_ValueChanged"/>
-            <Label Grid.Column="0" Content="Höhe" Margin="0,0,0,0"/>
+            <Slider x:Name="sldHeight" VerticalAlignment="Center" Margin="5,5,5,5" Height="18" Grid.Column="1" ValueChanged="SldHeight_ValueChanged"/>
+            <Label Grid.Column="0" Content="Height
+                   " Margin="0,0,188,0" Grid.ColumnSpan="2"/>
             <Label x:Name="lblHoehe" Grid.Column="2" Content="99" Margin="0,0,0,0" HorizontalContentAlignment="Right"/>
         </Grid>
         <Grid Height="28" Margin="10,76,10,0" VerticalAlignment="Top">
@@ -34,12 +34,12 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="30"/>
             </Grid.ColumnDefinitions>
-            <Slider x:Name="sldMinen" VerticalAlignment="Center" Margin="10,5" Height="18" Grid.Column="1" ValueChanged="sldMinen_ValueChanged"/>
-            <Label Grid.Column="0" Content="Minen" Margin="0,0,0,0"/>
-            <Label x:Name="lblMinen" Grid.Column="2" Content="99" Margin="0,0,0,0" HorizontalContentAlignment="Right"/>
+            <Slider x:Name="sldMines" VerticalAlignment="Center" Margin="5,5,5,5" Height="18" Grid.Column="1" ValueChanged="SldMines_ValueChanged"/>
+            <Label Grid.Column="0" Content="Mines" Margin="0,0,188,0" Grid.ColumnSpan="2"/>
+            <Label x:Name="lblMines" Grid.Column="2" Content="99" Margin="0,0,0,0" HorizontalContentAlignment="Right"/>
         </Grid>
-        <Button x:Name="cmdConfirm" Content="OK" Margin="0,0,90,10" HorizontalAlignment="Right" Width="75" Height="20" VerticalAlignment="Bottom" Click="cmdConfirm_Click"/>
-        <Button x:Name="cmdCancel" Content="Abbrechen" Margin="0,0,10,10" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="75" Click="cmdCancel_Click"/>
+        <Button x:Name="cmdConfirm" Content="OK" Margin="0,0,90,10" HorizontalAlignment="Right" Width="75" Height="20" VerticalAlignment="Bottom" Click="CmdConfirm_Click" IsDefault="True"/>
+        <Button x:Name="cmdCancel" Content="Cancel" Margin="0,0,10,10" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="75" Click="CmdCancel_Click" IsCancel="True"/>
 
     </Grid>
 </Window>

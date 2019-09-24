@@ -5,13 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfSweeper"
         mc:Ignorable="d"
-        Title="GameWon" Height="223.714" Width="244.286" ResizeMode="NoResize">
+        Title="YOU WIN" Height="223.714" Width="244.286" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
     <Grid>
-        <Label Content="Herzlichen Glückwunsch!" Margin="10,10,10,0" VerticalAlignment="Top" FontSize="18"/>
-        <Label Content="Zeit" HorizontalAlignment="Left" Margin="10,49,0,0" VerticalAlignment="Top" Width="75" BorderBrush="Black" BorderThickness="1,1,0,1"/>
-        <Label x:Name="lblTime" Content="Zeit" Margin="0,49,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="143" HorizontalContentAlignment="Right" BorderThickness="0,1,1,1" BorderBrush="Black"/>
-        <Button x:Name="cmdNewGame" Content="Neues Spiel" HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Bottom" Click="cmdNewGame_Click"/>
-        <Button x:Name="cmdShowField" Content="Spielfeld zeigen" Margin="0,0,10,10" HorizontalAlignment="Right" Width="95" Height="20" VerticalAlignment="Bottom" Click="cmdShowField_Click"/>
-
+        <Label Content="Congratulations!" Margin="10,10,10,0" VerticalAlignment="Top" FontSize="18"/>
+        <Label Content="Time" HorizontalAlignment="Left" Margin="10,49,0,0" VerticalAlignment="Top" Width="75" BorderBrush="Black" BorderThickness="1,1,0,1"/>
+        <Label x:Name="lblTime" Content="Time" Margin="0,49,10,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="143" HorizontalContentAlignment="Right" BorderThickness="0,1,1,1" BorderBrush="Black"/>
+        <Button x:Name="cmdNewGame" Content="New Game" HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Grid.ColumnSpan="2" Height="20" VerticalAlignment="Bottom" Click="cmdNewGame_Click"/>
+        <Button x:Name="cmdShowField" Content="Show game field" Margin="0,0,10,10" HorizontalAlignment="Right" Width="95" Height="20" VerticalAlignment="Bottom" Click="cmdShowField_Click"/>
     </Grid>
 </Window>

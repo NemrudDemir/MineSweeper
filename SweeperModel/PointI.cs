@@ -1,22 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SweeperModel
+﻿namespace SweeperModel
 {
     /// <summary>
     /// Integer Point
     /// </summary>
     public class PointI
     {
+        /// <summary>
+        /// Gets or sets the X coordinate
+        /// </summary>
         public int X {
-            set; get;
+            get; set;
         }
 
+        /// <summary>
+        /// Gets or sets the Y coordinate
+        /// </summary>
         public int Y {
-            set; get;
+            get; set;
         }
 
         public PointI(int x, int y)
@@ -24,7 +24,5 @@ namespace SweeperModel
             X = x;
             Y = y;
         }
-
-        public PointI(double x, double y) : this((int)x, (int)y) { }
     }
 }

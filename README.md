@@ -1,6 +1,6 @@
 # MineSweeper
 Minesweeper in C#
 
-# Demos
+## Demos
 - WPF-Application
 - Console-Application

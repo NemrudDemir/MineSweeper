@@ -1,0 +1,237 @@
+﻿@page "/"
+@using SweeperModel;
+@using System.Threading;
+
+<div style="margin: 0 auto; display: table">
+    <div id="top" style="display: table-row; text-align: center">
+        <div id="mines" style="width: 50px; height: 28px; border: solid 1px black; float: left">
+            @Field.MinesLeft
+        </div>
+        <div id="time" style="width: 50px; height: 28px; border: solid 1px black; float: right">
+            @_elapsed
+        </div>
+    </div>
+    <div style="background-color:gray; display: block; position: relative; margin: 0 auto" oncontextmenu="return false;">
+        @if ((Field.IsGameOver || Field.IsGameWon) && !ShowMines && !ShowGameField) //when mines are shown dont show overlay
+        {
+            <div id="gameOverlay" style="position: absolute; top: 50%; transform: translateY(-50%); left: 0; width: 100%;
+                text-align: center; background-color: rgb(0, 0, 0); /*fallback*/ background-color: rgba(0, 0, 0, 0.75); color: white;">
+                <div id="overlayHead" style="font-size: x-large; margin-top: 14px">
+                    <strong>YOU @(Field.IsGameWon ? "WIN" : "LOSE")</strong>
+                </div>
+                <div id="overlayBody" style="margin: 14px">
+                    <strong>@(Field.IsGameWon ? "Congratulations!" : "More luck next time!")</strong>
+                    <br />
+                    Time: @_elapsed
+                </div>
+
+                <button id="overlayLeftButton" style="margin: 14px" @onclick="(() => GameEndLeftButton(Field.IsGameWon))">
+                    @(Field.IsGameWon ? "New game" : "Show mines")
+                </button>
+                <button id="overlayRightButton" style="margin: 14px" @onclick="(() => GameEndRightButton(Field.IsGameWon))">
+                    @(Field.IsGameWon ? "Show game field" : "Undo last move")
+                </button>
+            </div>
+        }
+        @for (var y = 0; y < Field.Y; y++)
+        {
+            int y2 = y;
+            <div style="margin-top: 1px; display: flex">
+                @for (var x = 0; x < Field.X; x++)
+                {
+                    int x2 = x;
+                    var cell = Field.Cells[x][y];
+                    var imageName = "";
+                    switch (cell.Status)
+                    {
+                        case CellStatus.Covered:
+                            imageName = "Cell.png";
+                            break;
+                        case CellStatus.Flagged:
+                            imageName = "Flagged.png";
+                            break;
+                        case CellStatus.Opened:
+                            imageName = $"{(int)cell.Value}.png";
+                            break;
+                    }
+                    if (ShowMines)
+                    {
+                        if (cell.Value == CellValue.Mine)
+                        {
+                            switch (cell.Status)
+                            {
+                                case CellStatus.Covered: //show mine
+                                    imageName = "-1.png";
+                                    break;
+                                case CellStatus.Opened: //the opened mine is highlighted
+                                    imageName = "mineRed.png";
+                                    break;
+                            }
+                        }
+                        else if (cell.Status == CellStatus.Flagged && cell.Value != CellValue.Mine)
+                        { //wrong flagged cells
+                            imageName = "mineX.png";
+                        }
+                    }
+                    <img ondragstart="return false;" @onclick="(() => FieldClick(x2,y2))"
+                         @oncontextmenu="(() => FieldRightClick(x2,y2))" src="/Ressources/@imageName"
+                         width="@CELL_PIXELS" height="@CELL_PIXELS"
+                         style="margin-right: @(LINE_THICKNESS)px; -khtml-user-select: none;
+                        -o-user-select: none; -moz-user-select: none; -webkit-user-select: none;
+                    user-select: none;" />
+                }
+            </div>
+        }
+    </div>
+    <button @onclick="ChangeClickMode"
+            style="display: block; margin: 10px auto; width: 48px; height: 48px; background: url(/Ressources/@(Mode == ClickMode.Open ? "ModeShovel.png" : "ModeFlag.png"))"></button>
+</div>
+
+<div style="text-align: center; margin-top: 10px">
+    <h3>New Game</h3>
+    <div id="fieldButtons" style="display: table; margin: 0 auto">
+        <button @onclick="(() => NewGame(Field.X, Field.Y, Field.MinesTotal))">Same size</button>
+        @foreach (Field.Standards predefinedField in Enum.GetValues(typeof(Field.Standards)))
+        {
+            <button @onclick="(() => NewGame(predefinedField))">@predefinedField.ToString()</button>
+        }
+        <button @onclick="(() => ShowCustomGameOptions = !ShowCustomGameOptions)">Custom</button>
+        <div style="width: 100%; @(ShowCustomGameOptions ? "" : "display: none;")">
+            <input type="number" @bind="CustomGame.X" />
+            <input type="number" @bind="CustomGame.Y" />
+            <input type="number" @bind="CustomGame.Mines" />
+            <button @onclick="(() => NewGame(CustomGame.X, CustomGame.Y, CustomGame.Mines))">OK</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private const int CELL_PIXELS = 32;
+    private const int LINE_THICKNESS = 1;
+    private Timer Timer { get; set; }
+    private string _elapsed;
+    private bool ShowMines { get; set; }
+    private bool ShowField { get; set; }
+    private bool ShowGameField { get; set; }
+    private bool ShowCustomGameOptions { get; set; }
+    private (int X, int Y, int Mines) CustomGame = (10, 10, 10);
+    private ClickMode Mode { get; set; }
+    private Field _field;
+
+    private Field Field
+    {
+        get
+        {
+            if (_field == null)
+                Field = Field.GetStandardsField(Field.Standards.Beginner);
+            return _field;
+        }
+        set
+        {
+            _field = value;
+            ShowMines = false;
+            ShowGameField = false;
+            CustomGame = (value.X, value.Y, value.MinesTotal);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        SetTimer();
+    }
+
+    private void SetTimer()
+    {
+        Timer = new Timer(_ => OnTime(this, null), null, 0, 1000); //Calls 'OnTime' every second
+    }
+
+    private void ChangeClickMode()
+    {
+        Mode = (ClickMode)(((int)Mode + 1) % 2);
+    }
+
+    private void OnTime(object sender, EventArgs e)
+    {
+        var milliseconds = Field?.GetElapsedMilliseconds ?? 0;
+        var seconds = (int)(milliseconds / 1000);
+        var minutes = seconds / 60;
+        seconds %= 60;
+        _elapsed = $"{minutes:00}:{seconds:00}";
+        StateHasChanged();
+    }
+
+    private void NewGame(Field.Standards predefined)
+    {
+        Field = Field.GetStandardsField(predefined);
+    }
+
+    private void NewGame(int x, int y, int mines)
+    {
+        x = Math.Min(x, Field.MaxX);
+        y = Math.Min(y, Field.MaxY);
+        x = Math.Max(x, Field.MinX);
+        y = Math.Max(y, Field.MinY);
+        mines = Math.Min(mines, Field.GetMaxMines(x, y));
+        mines = Math.Max(mines, Field.GetMinMines(x, y));
+        Field = new Field(x, y, mines);
+    }
+
+    private void FieldClick(int x, int y)
+    {
+        if (Mode == ClickMode.Open)
+            OpenField(x, y);
+        else
+            FlagField(x, y);
+    }
+
+    private void FieldRightClick(int x, int y)
+    {
+        if (Mode == ClickMode.Open)
+            FlagField(x, y);
+        else
+            OpenField(x, y);
+    }
+
+    private void OpenField(int x, int y)
+    {
+        if (Field.Cells[x][y].Status == CellStatus.Opened)
+            Field.DoOperation(new PointI(x, y), Field.Mode.OpenNearby);
+        else
+            Field.DoOperation(new PointI(x, y), Field.Mode.Open);
+    }
+
+    private void FlagField(int x, int y)
+    {
+        Field.DoOperation(new PointI(x, y), Field.Mode.Flag);
+    }
+
+    private void GameEndLeftButton(bool isWon)
+    {
+        if (isWon)
+        {
+            NewGame(Field.X, Field.Y, Field.MinesTotal);
+        }
+        else
+        {
+            ShowMines = true;
+        }
+    }
+
+    private void GameEndRightButton(bool isWon)
+    {
+        if (isWon)
+        {
+            ShowGameField = true;
+        }
+        else
+        { //undo last move
+            Field.Undo();
+        }
+    }
+
+    private enum ClickMode : int
+    {
+        Open = 0,
+        Flag = 1
+    }
+}

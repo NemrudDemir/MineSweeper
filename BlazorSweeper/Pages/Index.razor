@@ -74,7 +74,7 @@
                         }
                     }
                     <img ondragstart="return false;" @onclick="(() => FieldClick(x2,y2))"
-                         @oncontextmenu="(() => FieldRightClick(x2,y2))" src="/Ressources/@imageName"
+                         @oncontextmenu="(() => FieldRightClick(x2,y2))" src="Ressources/@imageName"
                          width="@CELL_PIXELS" height="@CELL_PIXELS"
                          style="margin-right: @(LINE_THICKNESS)px; -khtml-user-select: none;
                         -o-user-select: none; -moz-user-select: none; -webkit-user-select: none;
@@ -84,7 +84,7 @@
         }
     </div>
     <button @onclick="ChangeClickMode"
-            style="display: block; margin: 10px auto; width: 48px; height: 48px; background: url(/Ressources/@(Mode == ClickMode.Open ? "ModeShovel.png" : "ModeFlag.png"))"></button>
+            style="display: block; margin: 10px auto; width: 48px; height: 48px; background: url(Ressources/@(Mode == ClickMode.Open ? "ModeShovel.png" : "ModeFlag.png"))"></button>
 </div>
 
 <div style="text-align: center; margin-top: 10px">
@@ -177,7 +177,11 @@
     }
 
     private void FieldClick(int x, int y)
-    {
+    {   
+        if (Field.Cells[x][y].Status == CellStatus.Opened) {
+            Field.DoOperation(new PointI(x, y), Field.Mode.OpenNearby);
+            return;
+        }
         if (Mode == ClickMode.Open)
             OpenField(x, y);
         else
@@ -194,10 +198,7 @@
 
     private void OpenField(int x, int y)
     {
-        if (Field.Cells[x][y].Status == CellStatus.Opened)
-            Field.DoOperation(new PointI(x, y), Field.Mode.OpenNearby);
-        else
-            Field.DoOperation(new PointI(x, y), Field.Mode.Open);
+        Field.DoOperation(new PointI(x, y), Field.Mode.Open);
     }
 
     private void FlagField(int x, int y)

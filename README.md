@@ -4,4 +4,4 @@ Minesweeper in C#
 ## Demo Applications
 - WPF
 - Console
-- Blazor WebAssembly
+- Blazor WebAssembly: [Online Demo](https://nemruddemir.github.io/MineSweeper)

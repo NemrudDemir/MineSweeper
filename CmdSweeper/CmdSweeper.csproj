@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SweeperModel\SweeperModel.csproj">
-      <Project>{C5C8B19D-18D8-4EA9-93E9-79581C398F4F}</Project>
+      <Project>{A0BD3141-FE86-4365-9251-D614E64357E3}</Project>
       <Name>SweeperModel</Name>
     </ProjectReference>
   </ItemGroup>

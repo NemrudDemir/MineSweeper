@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 
 namespace SweeperModel
@@ -118,14 +117,14 @@ namespace SweeperModel
             }
             MinesTotal = MinesLeft = mines;
 
-            if (mines > GetMaxMines(x, y))
+            if(mines > GetMaxMines(x, y))
                 throw new Exception("There are too many mines for the fieldsize!");
 
             //Initialize cells
             Cells = new Cell[this.X][];
-            for (var row = 0; row < this.X; row++) {
+            for(var row = 0; row < this.X; row++) {
                 Cells[row] = new Cell[this.Y];
-                for (var column = 0; column < this.Y; column++)
+                for(var column = 0; column < this.Y; column++)
                     Cells[row][column] = new Cell();
             }
         }
@@ -138,8 +137,8 @@ namespace SweeperModel
         {
             var minesToSet = MinesTotal;
             var potentialMineIndices = new List<PointI>();
-            for (var y = 0; y < Y; y++)
-                for (var x = 0; x < X; x++)
+            for(var y = 0; y < Y; y++)
+                for(var x = 0; x < X; x++)
                     potentialMineIndices.Add(new PointI(x, y));
 
             int[] protectedCellIndices = GetNearbyCellPoints(hitPoint, true).
@@ -148,7 +147,7 @@ namespace SweeperModel
                 potentialMineIndices.RemoveAt(index);
 
             var random = new Random();
-            while (minesToSet > 0) { //Create indices for mines
+            while(minesToSet > 0) { //Create indices for mines
                 int rndIndex = random.Next(potentialMineIndices.Count);
                 SetMine(potentialMineIndices[rndIndex]);
                 potentialMineIndices.RemoveAt(rndIndex);
@@ -168,13 +167,18 @@ namespace SweeperModel
             UpdateNearbyCells(point);
         }
 
+        private PointI[] GetNearbyCellPoints(PointI midPoint)
+        {
+            return GetNearbyCellPoints(midPoint, false);
+        }
+
         /// <summary>
         /// Gets all the points nearby the given point
         /// </summary>
         /// <param name="midPoint">middle Point</param>
         /// <param name="withOwnCell">Adds the given point to the collection</param>
         /// <returns></returns>
-        private PointI[] GetNearbyCellPoints(PointI midPoint, bool withOwnCell=false)
+        private PointI[] GetNearbyCellPoints(PointI midPoint, bool withOwnCell)
         {
             var x = midPoint.X;
             var y = midPoint.Y;
@@ -188,9 +192,14 @@ namespace SweeperModel
                 GetCellPoint(x, y + 1), //bottom
                 GetCellPoint(x + 1, y + 1) //bottom right
             };
-            if (withOwnCell)
+            if(withOwnCell)
                 nearbyCells.Add(midPoint); //own
             return nearbyCells.Where(point => point != null).ToArray();
+        }
+
+        private IEnumerable<Cell> GetNearbyCells(PointI point)
+        {
+            return GetNearbyCells(point, false);
         }
 
         /// <summary>
@@ -199,7 +208,7 @@ namespace SweeperModel
         /// <param name="point">middle Point</param>
         /// <param name="withOwnCell">Adds the given point-cell to the collection</param>
         /// <returns></returns>
-        private IEnumerable<Cell> GetNearbyCells(PointI point, bool withOwnCell=false)
+        private IEnumerable<Cell> GetNearbyCells(PointI point, bool withOwnCell)
         {
             return GetNearbyCellPoints(point, withOwnCell).Select(cPoint => Cells[cPoint.X][cPoint.Y]);
         }
@@ -212,7 +221,7 @@ namespace SweeperModel
         /// <returns></returns>
         private PointI GetCellPoint(int x, int y)
         {
-            if (x >= 0 && x < X && y >= 0 && y < Y)
+            if(x >= 0 && x < X && y >= 0 && y < Y)
                 return new PointI(x, y);
             return null;
         }
@@ -223,10 +232,10 @@ namespace SweeperModel
         /// <param name="point">point of cell</param>
         private void UpdateNearbyCells(PointI point)
         {
-            foreach (var nearbyCell in GetNearbyCells(point))
+            foreach(var nearbyCell in GetNearbyCells(point))
                 nearbyCell.AddNearbyMine();
         }
-        
+
         /// <summary>
         /// Generates an one dimensional number from a given point
         /// </summary>
@@ -255,13 +264,13 @@ namespace SweeperModel
         /// <returns>the manipulated points</returns>
         public List<PointI> DoOperation(PointI point, Mode mode)
         {
-            if (IsGameOver || IsGameWon)
+            if(IsGameOver || IsGameWon)
                 return new List<PointI>();
-            if (!_isFieldInitialized)
+            if(!_isFieldInitialized)
                 SetMines(point);
 
             var changedCells = new List<PointI>();
-            switch (mode) {
+            switch(mode) {
                 case Mode.Open:
                     OpenCell(point, ref changedCells);
                     break;
@@ -289,14 +298,14 @@ namespace SweeperModel
                 cell.Status = CellStatus.Opened;
                 changedCells.Add(point);
                 NonMinesOpened++;
-                if (cell.Value == CellValue.Mine) { //game over
+                if(cell.Value == CellValue.Mine) { //game over
                     _stopWatch.Stop();
                     IsGameOver = true;
-                } else if (NonMinesOpened + MinesTotal == X*Y) { //game won
+                } else if(NonMinesOpened + MinesTotal == X * Y) { //game won
                     _stopWatch.Stop();
                     IsGameWon = true;
-                } else if (cell.Value == CellValue.Empty) { //if there are no nearby mines, open all nearby cells automatically
-                    foreach (var nearbyCellPoint in GetNearbyCellPoints(point))
+                } else if(cell.Value == CellValue.Empty) { //if there are no nearby mines, open all nearby cells automatically
+                    foreach(var nearbyCellPoint in GetNearbyCellPoints(point))
                         OpenCell(nearbyCellPoint, ref changedCells);
                 }
             }
@@ -309,7 +318,7 @@ namespace SweeperModel
         private void ToggleFlag(PointI point)
         {
             var cell = Cells[point.X][point.Y];
-            switch (cell.Status) {
+            switch(cell.Status) {
                 case CellStatus.Covered:
                     cell.Status = CellStatus.Flagged;
                     MinesLeft--;
@@ -329,16 +338,16 @@ namespace SweeperModel
         private void OpenNearbyCells(PointI point, ref List<PointI> changedCells)
         {
             var cell = Cells[point.X][point.Y];
-            if (cell.Status == CellStatus.Covered) {
+            if(cell.Status == CellStatus.Covered) {
                 OpenCell(point, ref changedCells); //if the cell is still covered, open it
-            } else if (cell.Status == CellStatus.Opened) {
+            } else if(cell.Status == CellStatus.Opened) {
                 int flagCounter = 0;
                 var nearbyCellPoints = GetNearbyCellPoints(point);
-                foreach (var nearbyCellPoint in nearbyCellPoints) //count the flags on nearby cells
-                    if (Cells[nearbyCellPoint.X][nearbyCellPoint.Y].Status == CellStatus.Flagged)
+                foreach(var nearbyCellPoint in nearbyCellPoints) //count the flags on nearby cells
+                    if(Cells[nearbyCellPoint.X][nearbyCellPoint.Y].Status == CellStatus.Flagged)
                         flagCounter++;
-                if (flagCounter == (int)cell.Value) { //if the flag count on nearby cells equal to the value of mines nearby open nearby cells
-                    foreach (var nearbyCellPoint in nearbyCellPoints)
+                if(flagCounter == (int)cell.Value) { //if the flag count on nearby cells equal to the value of mines nearby open nearby cells
+                    foreach(var nearbyCellPoint in nearbyCellPoints)
                         OpenCell(nearbyCellPoint, ref changedCells);
                 }
             }
@@ -391,7 +400,7 @@ namespace SweeperModel
         /// <returns>returns a field with certain options</returns>
         public static Field GetStandardsField(Standards predefinedField, bool reversed = false) //https://www.bernhard-gaul.de/spiele/minesweeper/minesweeper-spielregel.html
         {
-            switch (predefinedField) {
+            switch(predefinedField) {
                 case Standards.Beginner:
                     return new Field(9, 9, 10, reversed);
                 case Standards.Intermediate:
@@ -410,37 +419,9 @@ namespace SweeperModel
         /// <returns></returns>
         public bool FieldExists(PointI fieldCoordinate)
         {
-            if (fieldCoordinate.X < 0 || fieldCoordinate.Y < 0 || fieldCoordinate.X >= this.X || fieldCoordinate.Y >= this.Y)
+            if(fieldCoordinate.X < 0 || fieldCoordinate.Y < 0 || fieldCoordinate.X >= this.X || fieldCoordinate.Y >= this.Y)
                 return false;
             return true;
         }
-    }
-}
-
-public static class Extensions
-{
-    /// <summary>
-    /// Gets the description of the enum if available otherwise its name
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="e">the enumValue</param>
-    /// <returns>Description of the enum if available otherwise its name</returns>
-    public static string ToDescription<T>(this T e) where T : IConvertible
-    {
-        var type = e.GetType();
-        Array values = Enum.GetValues(type);
-
-        foreach (int val in values) {
-            if (val == e.ToInt32(CultureInfo.InvariantCulture)) {
-                var memInfo = type.GetMember(type.GetEnumName(val));
-                var descriptionAttributes = memInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
-                if (descriptionAttributes.Length > 0) {
-                    // we're only getting the first description we find
-                    // others will be ignored
-                    return ((DescriptionAttribute)descriptionAttributes[0]).Description;
-                }
-            }
-        }
-        return Enum.GetName(type, e);
     }
 }

@@ -142,7 +142,7 @@
     <Resource Include="Ressources\mineX.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SweeperModel\SweeperModel.csproj">
+    <ProjectReference Include="..\..\src\SweeperModel\SweeperModel.csproj">
       <Project>{A0BD3141-FE86-4365-9251-D614E64357E3}</Project>
       <Name>SweeperModel</Name>
     </ProjectReference>

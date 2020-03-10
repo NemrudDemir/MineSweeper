@@ -1,5 +1,5 @@
-﻿using SweeperModel;
-using System.Windows;
+﻿using System.Windows;
+using SweeperModel.Elements;
 
 namespace WpfSweeper
 {
@@ -11,10 +11,10 @@ namespace WpfSweeper
         public CustomizeField(Field currentField)
         {
             InitializeComponent();
-            sldWidth.Minimum = Field.MinX;
-            sldWidth.Maximum = Field.MaxX;
-            sldHeight.Minimum = Field.MinY;
-            sldHeight.Maximum = Field.MaxY;
+            sldWidth.Minimum = Field.MIN_XY;
+            sldWidth.Maximum = Field.MAX_XY;
+            sldHeight.Minimum = Field.MIN_XY;
+            sldHeight.Maximum = Field.MAX_XY;
 
             sldWidth.Value = currentField.X;
             sldHeight.Value = currentField.Y;
@@ -35,7 +35,7 @@ namespace WpfSweeper
 
         private void UpdateMaxMines()
         {
-            sldMines.Minimum = Field.GetMinMines((int)sldWidth.Value, (int)sldHeight.Value);
+            sldMines.Minimum = Field.GetMinMines();
             var maxMines = Field.GetMaxMines((int)sldWidth.Value, (int)sldHeight.Value);
             if (sldMines.Value > maxMines)
                 sldMines.Value = maxMines;

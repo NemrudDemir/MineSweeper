@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using SweeperModel;
 @using System.Threading;
+@using SweeperModel.Elements
 
 <div style="margin: 0 auto; display: table">
     <div id="top" style="display: table-row; text-align: center">
@@ -167,12 +168,12 @@
 
     private void NewGame(int x, int y, int mines)
     {
-        x = Math.Min(x, Field.MaxX);
-        y = Math.Min(y, Field.MaxY);
-        x = Math.Max(x, Field.MinX);
-        y = Math.Max(y, Field.MinY);
+        x = Math.Min(x, Field.MAX_XY);
+        y = Math.Min(y, Field.MAX_XY);
+        x = Math.Max(x, Field.MIN_XY);
+        y = Math.Max(y, Field.MIN_XY);
         mines = Math.Min(mines, Field.GetMaxMines(x, y));
-        mines = Math.Max(mines, Field.GetMinMines(x, y));
+        mines = Math.Max(mines, Field.GetMinMines());
         Field = new Field(x, y, mines);
     }
 

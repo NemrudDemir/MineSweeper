@@ -1,4 +1,4 @@
-﻿namespace SweeperModel
+﻿namespace SweeperModel.Elements
 {
     public class Cell
     {

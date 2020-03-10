@@ -3,22 +3,28 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29201.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfSweeper", "WpfSweeper\WpfSweeper.csproj", "{2A2FFA6B-1EF9-4154-85C5-90B8CE6C15DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfSweeper", "demo\WpfSweeper\WpfSweeper.csproj", "{2A2FFA6B-1EF9-4154-85C5-90B8CE6C15DC}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A0BD3141-FE86-4365-9251-D614E64357E3} = {A0BD3141-FE86-4365-9251-D614E64357E3}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdSweeper", "CmdSweeper\CmdSweeper.csproj", "{17D5622C-97E3-4A04-895B-1830B6DB8D31}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CmdSweeper", "demo\CmdSweeper\CmdSweeper.csproj", "{17D5622C-97E3-4A04-895B-1830B6DB8D31}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A0BD3141-FE86-4365-9251-D614E64357E3} = {A0BD3141-FE86-4365-9251-D614E64357E3}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorSweeper", "BlazorSweeper\BlazorSweeper.csproj", "{1C5C32D6-1FAF-46B5-A512-679FDA2D1E60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorSweeper", "demo\BlazorSweeper\BlazorSweeper.csproj", "{1C5C32D6-1FAF-46B5-A512-679FDA2D1E60}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A0BD3141-FE86-4365-9251-D614E64357E3} = {A0BD3141-FE86-4365-9251-D614E64357E3}
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SweeperModel", "SweeperModel\SweeperModel.csproj", "{A0BD3141-FE86-4365-9251-D614E64357E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SweeperModel", "src\SweeperModel\SweeperModel.csproj", "{A0BD3141-FE86-4365-9251-D614E64357E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demos", "demos", "{3323BE9D-6F3F-4B18-95AE-AE2D8EE8D478}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{28C3C617-BCC0-423D-952A-6A9F386DC535}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SweeperModel.Test", "test\SweeperModel.Test\SweeperModel.Test.csproj", "{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -78,9 +84,27 @@ Global
 		{A0BD3141-FE86-4365-9251-D614E64357E3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A0BD3141-FE86-4365-9251-D614E64357E3}.Release|x86.ActiveCfg = Release|Any CPU
 		{A0BD3141-FE86-4365-9251-D614E64357E3}.Release|x86.Build.0 = Release|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Debug|x86.Build.0 = Debug|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Release|x86.ActiveCfg = Release|Any CPU
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2A2FFA6B-1EF9-4154-85C5-90B8CE6C15DC} = {3323BE9D-6F3F-4B18-95AE-AE2D8EE8D478}
+		{17D5622C-97E3-4A04-895B-1830B6DB8D31} = {3323BE9D-6F3F-4B18-95AE-AE2D8EE8D478}
+		{1C5C32D6-1FAF-46B5-A512-679FDA2D1E60} = {3323BE9D-6F3F-4B18-95AE-AE2D8EE8D478}
+		{5F097246-99CC-4C8C-BF0E-C17BD68F37AF} = {28C3C617-BCC0-423D-952A-6A9F386DC535}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C2BE80B7-2D67-415B-BDB9-303F14D26A7A}

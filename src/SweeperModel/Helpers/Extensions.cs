@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Globalization;
 
-namespace SweeperModel
+namespace SweeperModel.Helpers
 {
     public static class Extensions
     {

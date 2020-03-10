@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SweeperModel\SweeperModel.csproj" />
+    <ProjectReference Include="..\..\src\SweeperModel\SweeperModel.csproj" />
   </ItemGroup>
 
 </Project>

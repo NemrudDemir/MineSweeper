@@ -1,12 +1,13 @@
-﻿using SweeperModel;
-using System;
+﻿using System;
+using SweeperModel;
+using SweeperModel.Elements;
 
 namespace CmdSweeper
 {
     class Program
     {
         private static Field _field;
-        private static PointI _focusedPoint;
+        private static (int X, int Y) _focusedPoint;
 
         static void Main()
         {
@@ -16,21 +17,21 @@ namespace CmdSweeper
         private static void NewGame()
         {
             Console.Clear();
-            Console.WriteLine($"Breite: ({Field.MinX} - {Field.MaxX})");
+            Console.WriteLine($"Breite: ({Field.MIN_XY} - {Field.MAX_XY})");
             int x;
-            while (!int.TryParse(Console.ReadLine(), out x) || x < Field.MinX || x > Field.MaxX) {
+            while (!int.TryParse(Console.ReadLine(), out x) || x < Field.MIN_XY || x > Field.MAX_XY) {
                 Console.WriteLine("Angabe ungültig, bitte erneut versuchen");
             }
 
-            Console.WriteLine($"Höhe: ({Field.MinY} - {Field.MaxY})");
+            Console.WriteLine($"Höhe: ({Field.MIN_XY} - {Field.MAX_XY})");
             int y;
-            while (!int.TryParse(Console.ReadLine(), out y) || y < Field.MinY || y > Field.MaxY) {
+            while (!int.TryParse(Console.ReadLine(), out y) || y < Field.MIN_XY || y > Field.MAX_XY) {
                 Console.WriteLine("Angabe ungültig, bitte erneut versuchen");
             }
 
-            Console.WriteLine($"Anzahl der Minen: ({Field.GetMinMines(x,y)} - {Field.GetMaxMines(x,y)})");
+            Console.WriteLine($"Anzahl der Minen: ({Field.GetMinMines()} - {Field.GetMaxMines(x,y)})");
             int mines;
-            while (!int.TryParse(Console.ReadLine(), out mines) || mines < Field.GetMinMines(x,y) || mines > Field.GetMaxMines(x, y))
+            while (!int.TryParse(Console.ReadLine(), out mines) || mines < Field.GetMinMines() || mines > Field.GetMaxMines(x, y))
                 Console.WriteLine("Angabe ungültig, bitte erneut versuchen");
 
             SetField(y, x, mines);
@@ -40,7 +41,7 @@ namespace CmdSweeper
         private static void SetField(int x, int y, int mines)
         {
             _field = new Field(x, y, mines);
-            _focusedPoint = new PointI(0,0);
+            _focusedPoint = (0,0);
         }
 
         private static int _gameOverFocusedIndex;
@@ -161,7 +162,7 @@ namespace CmdSweeper
                     break;
                 case ConsoleKey.F:
                 case ConsoleKey.Insert:
-                    _field.DoOperation(_focusedPoint, Field.Mode.Flag);
+                    _field.DoOperation(GetPointFromTuple(_focusedPoint), Field.Mode.Flag);
                     break;
                 case ConsoleKey.Spacebar:
                 case ConsoleKey.Enter:
@@ -169,10 +170,11 @@ namespace CmdSweeper
                         GameOverOptions[_gameOverFocusedIndex].Action.Invoke();
                     } else {
                         var cell = _field.Cells[_focusedPoint.X][_focusedPoint.Y];
+                        var point = GetPointFromTuple(_focusedPoint);
                         if (cell.Status == CellStatus.Covered)
-                            _field.DoOperation(_focusedPoint, Field.Mode.Open);
+                            _field.DoOperation(point, Field.Mode.Open);
                         else if (cell.Status == CellStatus.Opened)
-                            _field.DoOperation(_focusedPoint, Field.Mode.OpenNearby);
+                            _field.DoOperation(point, Field.Mode.OpenNearby);
                     }
                     break;
                 default:
@@ -181,6 +183,8 @@ namespace CmdSweeper
             }
             NextStep();
         }
+
+        static PointI GetPointFromTuple((int x, int y) tuple) => new PointI(tuple.x, tuple.y);
 
         static char GetCharForCell(Cell cell) //TODO dont set the foregroundcolor here...
         {

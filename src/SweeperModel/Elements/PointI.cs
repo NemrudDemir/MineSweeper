@@ -1,4 +1,4 @@
-﻿namespace SweeperModel
+﻿namespace SweeperModel.Elements
 {
     /// <summary>
     /// Integer Point
@@ -9,14 +9,14 @@
         /// Gets or sets the X coordinate
         /// </summary>
         public int X {
-            get; set;
+            get;
         }
 
         /// <summary>
         /// Gets or sets the Y coordinate
         /// </summary>
         public int Y {
-            get; set;
+            get;
         }
 
         public PointI(int x, int y)

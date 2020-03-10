@@ -1,4 +1,5 @@
 ﻿using SweeperModel;
+using SweeperModel.Elements;
 
 namespace WpfSweeper
 {

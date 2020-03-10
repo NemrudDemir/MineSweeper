@@ -7,7 +7,6 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using SweeperModel.Elements;
-using SweeperModel.Helpers;
 
 namespace WpfSweeper
 {
@@ -55,7 +54,7 @@ namespace WpfSweeper
             //add the predefined fields menu items
             foreach (Field.Standards predefinedField in Enum.GetValues(typeof(Field.Standards))) {
                 var mnuItem = new MenuItemNewField(predefinedField) {
-                    Header = predefinedField.ToDescription(),
+                    Header = predefinedField,
                 };
                 mnuItem.Click += mnuNewPredefinedField_Click;
                 mnuNew.Items.Add(mnuItem);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SweeperModel.Elements;
 
@@ -183,6 +184,7 @@ namespace SweeperModel.Test
             throw new Exception("Make sure to hit 'return' in the loop");
         }
 
+        [TestMethod]
         public void Undo_OnStartedGame_ShouldntChangeCells()
         {
             var field = new Field(X, Y, MINES);
@@ -213,6 +215,39 @@ namespace SweeperModel.Test
             }
 
             throw new Exception();
+        }
+
+        [TestMethod]
+        public void GetElapsed_BeforeStart_ShouldBeBiggerThanZero()
+        {
+            var field = new Field(X, Y, MINES);
+            Thread.Sleep(100);
+            Assert.AreEqual(0, field.GetElapsedMilliseconds);
+        }
+
+        [TestMethod]
+        public void GetElapsed_AfterStart_ShouldBeBiggerThanZero()
+        {
+            var field = new Field(X, Y, MINES);
+            field.DoOperation(new PointI(0, 0), Field.Mode.Open);
+            Thread.Sleep(100);
+            Assert.IsTrue(field.GetElapsedMilliseconds > 0);
+        }
+
+        [TestMethod]
+        public void GetStandardFields_ForEveryEnum_ShouldReturnFields()
+        {
+            foreach(Field.Standards predefinedField in Enum.GetValues(typeof(Field.Standards))) {
+                var field = Field.GetStandardsField(predefinedField);
+                Assert.IsNotNull(field);
+            }
+        }
+
+        [TestMethod]
+        public void GetStandardFields_ForInvalidStandard_ShouldReturnNull()
+        {
+            var field = Field.GetStandardsField((Field.Standards)(-1));
+            Assert.IsNull(field);
         }
     }
 }

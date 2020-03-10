@@ -150,7 +150,7 @@ namespace SweeperModel.Test
         [TestMethod]
         public void OpenNearby_OnNearbyFlagCountMatchesValue_ShouldOpenNearbyCovered()
         {
-            var field = new Field(X, Y, MINES);
+            var field = new Field(X, Y, 10);
             field.DoOperation(new PointI(0, 0), Field.Mode.Open);
             for (var row = 0; row < field.Cells.Length; row++)
             {
@@ -164,7 +164,7 @@ namespace SweeperModel.Test
                         foreach (var nearbyPoint in nearbyCellPoints)
                         {
                             var nearbyCell = field.Cells[nearbyPoint.X][nearbyPoint.Y];
-                            if (nearbyCell.Value == CellValue.Mine)
+                            if (nearbyCell.Value == CellValue.Mine && nearbyCell.Status != CellStatus.Flagged)
                                 field.DoOperation(nearbyPoint, Field.Mode.Flag);
                             else if (nearbyCell.Status == CellStatus.Covered)
                                 isCoveredPoint = nearbyPoint;

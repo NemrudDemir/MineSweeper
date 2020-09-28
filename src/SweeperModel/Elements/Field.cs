@@ -78,12 +78,14 @@ namespace SweeperModel.Elements
         private bool _isFieldInitialized;
 
         private PointI _lastOpenedPoint; //is required for undo operation
-        public bool IsGameOver {
+        public GameStatus GameStatus {
             get; private set;
         }
 
-        public bool IsGameWon {
-            get; private set;
+        private UserSettings _userSettings;
+        public UserSettings UserSettings {
+            get => _userSettings ?? UserSettings.Default;
+            set => _userSettings = value;
         }
 
         /// <summary>
@@ -113,23 +115,30 @@ namespace SweeperModel.Elements
 
             if(mines > GetMaxMines(x, y) || mines < GetMinMines() || x > MAX_XY || y > MAX_XY || x < MIN_XY ||y < MIN_XY)
                 throw new Exception($"The given field is invalid!{Environment.NewLine}");
+
+            InitializeCells();
+        }
+
+        private void InitializeCells()
+        {
+            Cells = new Cell[X][];
+            for(var row = 0; row < X; row++) {
+                Cells[row] = new Cell[Y];
+                for(var column = 0; column < Y; column++) {
+                    Cells[row][column] = new Cell();
+                }
+            }
         }
 
         /// <summary>
         /// Setting the mines on the field
         /// </summary>
         /// <param name="hitPoint">point hit</param>
-        public void InitializeField(PointI hitPoint)
+        public void InitializeCellValues(PointI hitPoint)
         {
             var potentialMineIndices = new List<PointI>();
-            //Initialize cells
-            Cells = new Cell[X][];
-            for (var row = 0; row < X; row++)
-            {
-                Cells[row] = new Cell[Y];
-                for (var column = 0; column < Y; column++)
-                {
-                    Cells[row][column] = new Cell();
+            for (var row = 0; row < X; row++) {
+                for (var column = 0; column < Y; column++) {
                     potentialMineIndices.Add(new PointI(row, column));
                 }
             }
@@ -242,25 +251,21 @@ namespace SweeperModel.Elements
         /// <returns>the manipulated points</returns>
         public List<PointI> DoOperation(PointI point, Mode mode)
         {
-            if(IsGameOver || IsGameWon)
+            if(GameStatus != GameStatus.Open)
                 return new List<PointI>();
             if(!_isFieldInitialized)
-                InitializeField(point);
+                InitializeCellValues(point);
 
-            var changedCells = new List<PointI>();
             switch(mode) {
                 case Mode.Open:
-                    OpenCell(point, ref changedCells);
-                    break;
+                    return OpenCell(point);
                 case Mode.Flag:
                     ToggleFlag(point);
-                    changedCells.Add(point);
-                    break;
+                    return new List<PointI> { point };
                 case Mode.OpenNearby:
-                    OpenNearbyCells(point, ref changedCells);
-                    break;
+                    return OpenNearbyCellsOrSelf(point);
             }
-            return changedCells;
+            return new List<PointI>();
         }
 
         /// <summary>
@@ -268,25 +273,36 @@ namespace SweeperModel.Elements
         /// </summary>
         /// <param name="point">Point for the operation</param>
         /// <param name="changedCells">the manipulated points</param>
-        private void OpenCell(PointI point, ref List<PointI> changedCells)
+        private List<PointI> OpenCell(PointI point)
         {
             var cell = Cells[point.X][point.Y];
-            if(cell.Status == CellStatus.Covered && !IsGameOver) { //only covered cells can be opened
-                _lastOpenedPoint = point;
-                cell.Status = CellStatus.Opened;
-                changedCells.Add(point);
-                NonMinesOpened++;
-                if(cell.Value == CellValue.Mine) { //game over
-                    _stopWatch.Stop();
-                    IsGameOver = true;
-                } else if(NonMinesOpened + MinesTotal == X * Y) { //game won
-                    _stopWatch.Stop();
-                    IsGameWon = true;
-                } else if(cell.Value == CellValue.Empty) { //if there are no nearby mines, open all nearby cells automatically
-                    foreach(var nearbyCellPoint in GetNearbyCellPoints(point))
-                        OpenCell(nearbyCellPoint, ref changedCells);
+            if(GameStatus != GameStatus.Open || cell.Status != CellStatus.Covered) //only covered cells can be opened
+                return new List<PointI>();
+
+            var changedCells = new List<PointI>();
+            _lastOpenedPoint = point;
+            cell.Status = CellStatus.Opened;
+            changedCells.Add(point);
+            NonMinesOpened++;
+            if(cell.Value == CellValue.Mine)
+            { //game over
+                _stopWatch.Stop();
+                GameStatus = GameStatus.Lost;
+            }
+            else if(NonMinesOpened + MinesTotal == X * Y)
+            { //game won
+                _stopWatch.Stop();
+                GameStatus = GameStatus.Won;
+            }
+            else if(cell.Value == CellValue.Empty)
+            { //if there are no nearby mines, open all nearby cells automatically
+                foreach(var nearbyCellPoint in GetNearbyCellPoints(point))
+                {
+                    var emptyChangedCells = OpenCell(nearbyCellPoint);
+                    changedCells.AddRange(emptyChangedCells);
                 }
             }
+            return changedCells;
         }
 
         /// <summary>
@@ -313,36 +329,57 @@ namespace SweeperModel.Elements
         /// </summary>
         /// <param name="point">Point for the operation</param>
         /// <param name="changedCells">the manipulated points</param>
-        private void OpenNearbyCells(PointI point, ref List<PointI> changedCells)
+        private List<PointI> OpenNearbyCellsOrSelf(PointI point)
         {
             var cell = Cells[point.X][point.Y];
             if(cell.Status == CellStatus.Covered) {
-                OpenCell(point, ref changedCells); //if the cell is still covered, open it
+                return OpenCell(point); //if the cell is still covered, open it
             } else if(cell.Status == CellStatus.Opened) {
-                var nearbyCellPoints = GetNearbyCellPoints(point).ToList();
-                var flagCounter = nearbyCellPoints.Count(nearbyCellPoint =>
-                    Cells[nearbyCellPoint.X][nearbyCellPoint.Y].Status == CellStatus.Flagged);
-                if(flagCounter == (int)cell.Value) { //if the flag count on nearby cells equal to the value of mines nearby open nearby cells
-                    foreach(var nearbyCellPoint in nearbyCellPoints)
-                        OpenCell(nearbyCellPoint, ref changedCells);
+                return OpenNearbyCells(point);
+            }
+            return new List<PointI>();
+        }
+
+        private List<PointI> OpenNearbyCells(PointI point)
+        {
+            var changedCells = new List<PointI>();
+            var cell = Cells[point.X][point.Y];
+            var nearbyCellPoints = GetNearbyCellPoints(point).ToList();
+            var flagCounter = nearbyCellPoints.Count(nearbyCellPoint =>
+                Cells[nearbyCellPoint.X][nearbyCellPoint.Y].Status == CellStatus.Flagged);
+            if(flagCounter == (int)cell.Value)
+            { //if the flag count on nearby cells equal to the value of mines nearby open nearby cells
+                foreach(var nearbyCellPoint in nearbyCellPoints) {
+                    var tempChangedCells = OpenCell(nearbyCellPoint);
+                    changedCells.AddRange(tempChangedCells);
                 }
             }
+
+            if(UserSettings.DoOpenNearbyRecursive) {
+                var recursiveChangedCells = new List<PointI>();
+                foreach(var changedCell in changedCells) {
+                    var tempChangedCells = OpenNearbyCells(changedCell);
+                    recursiveChangedCells.AddRange(tempChangedCells);
+                }
+                changedCells.AddRange(recursiveChangedCells);
+            }
+            return changedCells;
         }
 
         /// <summary>
         /// On game over, undo the last operation, so that the game keeps going
         /// </summary>
         /// <returns>the manipulated cell</returns>
-        public List<PointI> Undo()
+        public PointI Undo()
         {
-            if(IsGameOver) {
-                IsGameOver = false;
-                _stopWatch.Start();
-                Cells[_lastOpenedPoint.X][_lastOpenedPoint.Y].Status = CellStatus.Covered;
-                NonMinesOpened--;
-                return new List<PointI> { _lastOpenedPoint };
-            }
-            return new List<PointI>();
+            if(GameStatus != GameStatus.Lost)
+                return null;
+
+            GameStatus = GameStatus.Open;
+            _stopWatch.Start();
+            Cells[_lastOpenedPoint.X][_lastOpenedPoint.Y].Status = CellStatus.Covered;
+            NonMinesOpened--;
+            return _lastOpenedPoint;
         }
 
         /// <summary>

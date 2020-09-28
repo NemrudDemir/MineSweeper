@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,7 +18,7 @@ namespace SweeperModel.Test
         public void CreateField_ValidOptions_ShouldntThrow()
         {
             var field = new Field(X, Y, MINES);
-            field.InitializeField(new PointI(0, 0));
+            field.InitializeCellValues(new PointI(0, 0));
 
             Assert.AreEqual(X, field.X);
             Assert.AreEqual(Y, field.Y);
@@ -29,7 +30,7 @@ namespace SweeperModel.Test
         public void CreateFieldReversed_ValidOptions_ShouldntThrow()
         {
             var field = new Field(X, Y, MINES, true);
-            field.InitializeField(new PointI(0, 0));
+            field.InitializeCellValues(new PointI(0, 0));
 
             Assert.AreEqual(Y, field.X);
             Assert.AreEqual(X, field.Y);
@@ -42,7 +43,7 @@ namespace SweeperModel.Test
         {
             var max = Field.MAX_XY;
             var field = new Field(max, max, Field.GetMaxMines(max, max));
-            field.InitializeField(new PointI(0, 0));
+            field.InitializeCellValues(new PointI(0, 0));
         }
 
         [TestMethod]
@@ -50,7 +51,7 @@ namespace SweeperModel.Test
         {
             var min = Field.MIN_XY;
             var field = new Field(min, min, Field.GetMinMines());
-            field.InitializeField(new PointI(0, 0));
+            field.InitializeCellValues(new PointI(0, 0));
         }
 
         [TestMethod]
@@ -65,9 +66,13 @@ namespace SweeperModel.Test
         public void DoOperation_WhileNotInitialized_ShouldInitialize()
         {
             var field = new Field(X, Y, MINES);
-            Assert.IsNull(field.Cells);
+            var cells = new List<Cell>();
+            foreach(var cellX in field.Cells)
+                foreach(var cell in cellX)
+                    cells.Add(cell);
+            Assert.AreEqual(0, cells.Count(cell => cell.Value == CellValue.Mine));
             field.DoOperation(new PointI(0, 0), Field.Mode.Open);
-            Assert.IsNotNull(field.Cells);
+            Assert.AreEqual(MINES, cells.Count(cell => cell.Value == CellValue.Mine));
         }
 
         [TestMethod]
@@ -91,7 +96,7 @@ namespace SweeperModel.Test
                     if (cell.Value == CellValue.Mine)
                     {
                         field.DoOperation(new PointI(row, column), Field.Mode.Open);
-                        Assert.IsTrue(field.IsGameOver);
+                        Assert.AreEqual(GameStatus.Lost, field.GameStatus);
                         return;
                     }
                 }
@@ -117,7 +122,7 @@ namespace SweeperModel.Test
                 }
             }
 
-            Assert.IsTrue(field.IsGameWon);
+            Assert.AreEqual(GameStatus.Won, field.GameStatus);
         }
 
         [TestMethod]
@@ -190,7 +195,7 @@ namespace SweeperModel.Test
             var field = new Field(X, Y, MINES);
             field.DoOperation(new PointI(0, 0), Field.Mode.Open);
             var changed = field.Undo();
-            Assert.IsTrue(changed.Count == 0);
+            Assert.IsNull(changed);
         }
 
         [TestMethod]
@@ -206,8 +211,8 @@ namespace SweeperModel.Test
                     if (cell.Value == CellValue.Mine)
                     {
                         field.DoOperation(new PointI(row, column), Field.Mode.Open);
-                        Assert.IsTrue(field.IsGameOver);
-                        var changedCell = field.Undo().First();
+                        Assert.AreEqual(GameStatus.Lost, field.GameStatus);
+                        var changedCell = field.Undo();
                         Assert.IsTrue(changedCell.X == row && changedCell.Y == column);
                         return;
                     }

@@ -13,24 +13,24 @@
         </div>
     </div>
     <div style="background-color:gray; display: block; position: relative; margin: 0 auto" oncontextmenu="return false;">
-        @if ((Field.IsGameOver || Field.IsGameWon) && !ShowMines && !ShowGameField) //when mines are shown dont show overlay
+        @if (Field.GameStatus != GameStatus.Open && !ShowMines && !ShowGameField) //when mines are shown dont show overlay
         {
             <div id="gameOverlay" style="position: absolute; top: 50%; transform: translateY(-50%); left: 0; width: 100%;
                 text-align: center; background-color: rgb(0, 0, 0); /*fallback*/ background-color: rgba(0, 0, 0, 0.75); color: white;">
                 <div id="overlayHead" style="font-size: x-large; margin-top: 14px">
-                    <strong>YOU @(Field.IsGameWon ? "WIN" : "LOSE")</strong>
+                    <strong>YOU @(Field.GameStatus == GameStatus.Won ? "WIN" : "LOSE")</strong>
                 </div>
                 <div id="overlayBody" style="margin: 14px">
-                    <strong>@(Field.IsGameWon ? "Congratulations!" : "More luck next time!")</strong>
+                    <strong>@(Field.GameStatus == GameStatus.Won ? "Congratulations!" : "More luck next time!")</strong>
                     <br />
                     Time: @_elapsed
                 </div>
 
-                <button id="overlayLeftButton" style="margin: 14px" @onclick="(() => GameEndLeftButton(Field.IsGameWon))">
-                    @(Field.IsGameWon ? "New game" : "Show mines")
+                <button id="overlayLeftButton" style="margin: 14px" @onclick="(() => GameEndLeftButton(Field.GameStatus))">
+                    @(Field.GameStatus == GameStatus.Won ? "New game" : "Show mines")
                 </button>
-                <button id="overlayRightButton" style="margin: 14px" @onclick="(() => GameEndRightButton(Field.IsGameWon))">
-                    @(Field.IsGameWon ? "Show game field" : "Undo last move")
+                <button id="overlayRightButton" style="margin: 14px" @onclick="(() => GameEndRightButton(Field.GameStatus))">
+                    @(Field.GameStatus == GameStatus.Won ? "Show game field" : "Undo last move")
                 </button>
             </div>
         }
@@ -103,6 +103,10 @@
             <input type="number" @bind="CustomGame.Mines" />
             <button @onclick="(() => NewGame(CustomGame.X, CustomGame.Y, CustomGame.Mines))">OK</button>
         </div>
+    </div>
+    <div>
+        <input type="checkbox" id="openNearbyRecursive" name="openNearbyRecursive" @bind="Field.UserSettings.DoOpenNearbyRecursive" />
+        <label for="openNearbyRecursive">Open-Nearby Recursively</label>
     </div>
 </div>
 
@@ -207,28 +211,20 @@
         Field.DoOperation(new PointI(x, y), Field.Mode.Flag);
     }
 
-    private void GameEndLeftButton(bool isWon)
+    private void GameEndLeftButton(GameStatus status)
     {
-        if (isWon)
-        {
+        if (status == GameStatus.Won)
             NewGame(Field.X, Field.Y, Field.MinesTotal);
-        }
-        else
-        {
+        else if (status == GameStatus.Lost)
             ShowMines = true;
-        }
     }
 
-    private void GameEndRightButton(bool isWon)
+    private void GameEndRightButton(GameStatus status)
     {
-        if (isWon)
-        {
+        if (status == GameStatus.Won)
             ShowGameField = true;
-        }
-        else
-        { //undo last move
+        else if (status == GameStatus.Lost) //undo last move
             Field.Undo();
-        }
     }
 
     private enum ClickMode : int

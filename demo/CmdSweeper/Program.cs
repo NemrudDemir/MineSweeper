@@ -64,7 +64,6 @@ namespace CmdSweeper
         /// </summary>
         private static void Restart()
         {
-            
             SetField(_field.X, _field.Y, _field.MinesTotal);
         }
 
@@ -81,11 +80,11 @@ namespace CmdSweeper
                 }
                 Console.WriteLine();
             }
-            if (_field.IsGameOver ||_field.IsGameWon) {
-                if (_field.IsGameOver) {
+            if (_field.GameStatus != GameStatus.Open) {
+                if (_field.GameStatus == GameStatus.Lost) {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("GAME OVER!");
-                } else if(_field.IsGameWon) {
+                } else if(_field.GameStatus == GameStatus.Won) {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("GAME WON!");
                 }
@@ -122,7 +121,7 @@ namespace CmdSweeper
                     break;
                 case ConsoleKey.A:
                 case ConsoleKey.LeftArrow:
-                    if (_field.IsGameOver || _field.IsGameWon) {
+                    if (_field.GameStatus != GameStatus.Open) {
                         if(_gameOverFocusedIndex == 0) {
                             DoMove();
                             return;
@@ -146,7 +145,7 @@ namespace CmdSweeper
                     break;
                 case ConsoleKey.D:
                 case ConsoleKey.RightArrow:
-                    if (_field.IsGameOver || _field.IsGameWon) {
+                    if (_field.GameStatus != GameStatus.Open) {
                         if (_gameOverFocusedIndex == 2) {
                             DoMove();
                             return;
@@ -166,7 +165,7 @@ namespace CmdSweeper
                     break;
                 case ConsoleKey.Spacebar:
                 case ConsoleKey.Enter:
-                    if (_field.IsGameOver || _field.IsGameWon) {
+                    if (_field.GameStatus != GameStatus.Open) {
                         GameOverOptions[_gameOverFocusedIndex].Action.Invoke();
                     } else {
                         var cell = _field.Cells[_focusedPoint.X][_focusedPoint.Y];

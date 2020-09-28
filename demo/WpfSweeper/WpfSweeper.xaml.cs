@@ -181,6 +181,15 @@ namespace WpfSweeper
             UpdateStatus();
         }
 
+        private void UpdateGame(PointI changedCell)
+        {
+            var changedCells = new List<PointI>();
+            if(changedCell != null) {
+                changedCells.Add(changedCell);
+            }
+            UpdateGame(changedCells);
+        }
+
         /// <summary>
         /// Update canvas, show field after game over
         /// </summary>
@@ -245,14 +254,14 @@ namespace WpfSweeper
         /// </summary>
         private void UpdateStatus()
         {
-            if(Field.IsGameOver) {
+            if(Field.GameStatus == GameStatus.Lost) {
                 cmdStatus.Content = ":(";
-                if((new GameOver(Field.GetElapsedMilliseconds).ShowDialog()) == true) { //Game over
+                if(new GameOver(Field.GetElapsedMilliseconds).ShowDialog() == true) { //Game over
                     UpdateGameOver();
                 } else { //Undo
                     UpdateGame(Field.Undo());
                 }
-            } else if(Field.IsGameWon) {
+            } else if(Field.GameStatus == GameStatus.Won) {
                 cmdStatus.Content = "B)";
                 if((new GameWon(Field.GetElapsedMilliseconds).ShowDialog()) == true) {
                     SetField(Field.X, Field.Y, Field.MinesTotal);

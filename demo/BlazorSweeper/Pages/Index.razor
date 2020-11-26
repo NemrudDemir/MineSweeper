@@ -183,7 +183,7 @@
     {
         if(Field.Cells[x, y].Status == CellStatus.Opened)
         {
-            Field.DoOperation(new PointI(x, y), Field.Mode.OpenNearby);
+            Field.DoOperation(new PointI(x, y), FieldMode.OpenNearby);
             return;
         }
         if(Mode == ClickMode.Open)
@@ -202,12 +202,12 @@
 
     private void OpenField(int x, int y)
     {
-        Field.DoOperation(new PointI(x, y), Field.Mode.Open);
+        Field.DoOperation(new PointI(x, y), FieldMode.Open);
     }
 
     private void FlagField(int x, int y)
     {
-        Field.DoOperation(new PointI(x, y), Field.Mode.Flag);
+        Field.DoOperation(new PointI(x, y), FieldMode.Flag);
     }
 
     private void GameEndLeftButton(GameStatus status)

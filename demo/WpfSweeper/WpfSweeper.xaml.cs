@@ -135,7 +135,7 @@ namespace WpfSweeper
         private void cnvField_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             if(GetFieldAt(e.GetPosition(cnvField)) is PointI fieldPoint)
-                UpdateGame(Field.DoOperation(fieldPoint, Field.Mode.Flag));
+                UpdateGame(Field.DoOperation(fieldPoint, FieldMode.Flag));
         }
 
         private void cnvField_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -144,7 +144,7 @@ namespace WpfSweeper
             {
                 if(GetFieldAt(e.GetPosition(cnvField)) is PointI fieldPoint)
                 {
-                    UpdateGame(Field.DoOperation(fieldPoint, Field.Mode.OpenNearby));
+                    UpdateGame(Field.DoOperation(fieldPoint, FieldMode.OpenNearby));
                 }
             }
             else
@@ -263,7 +263,7 @@ namespace WpfSweeper
         {
             if(GetFieldAt(e.GetPosition(cnvField)) is PointI fieldPoint)
             {
-                UpdateGame(Field.DoOperation(fieldPoint, Field.Mode.Open));
+                UpdateGame(Field.DoOperation(fieldPoint, FieldMode.Open));
             }
         }
 

@@ -8,7 +8,7 @@ namespace SweeperModel.Elements
     /// <summary>
     /// Minesweeper field
     /// </summary>
-    public class Field
+    public partial class Field
     {
         private readonly Stopwatch _stopWatch = new Stopwatch();
         private bool _isFieldInitialized;
@@ -174,7 +174,7 @@ namespace SweeperModel.Elements
         /// <param name="point">cell of the operation</param>
         /// <param name="mode">the mode of the operation</param>
         /// <returns>the manipulated points</returns>
-        public List<PointI> DoOperation(PointI point, Mode mode)
+        public List<PointI> DoOperation(PointI point, FieldMode mode)
         {
             if(GameStatus != GameStatus.Running)
                 return new List<PointI>();
@@ -183,12 +183,12 @@ namespace SweeperModel.Elements
 
             switch(mode)
             {
-                case Mode.Open:
+                case FieldMode.Open:
                     return OpenCell(point);
-                case Mode.Flag:
+                case FieldMode.Flag:
                     ToggleFlag(point);
                     return new List<PointI> { point };
-                case Mode.OpenNearby:
+                case FieldMode.OpenNearby:
                     return OpenNearbyCellsOrSelf(point);
             }
 
@@ -262,16 +262,15 @@ namespace SweeperModel.Elements
         private List<PointI> OpenNearbyCellsOrSelf(PointI point)
         {
             var cell = Cells[point.X, point.Y];
-            if(cell.Status == CellStatus.Covered)
+            switch(cell.Status)
             {
-                return OpenCell(point); //if the cell is still covered, open it
+                case CellStatus.Covered:
+                    return OpenCell(point); //if the cell is still covered, open it
+                case CellStatus.Opened:
+                    return OpenNearbyCells(point);
+                default:
+                    return new List<PointI>();
             }
-            else if(cell.Status == CellStatus.Opened)
-            {
-                return OpenNearbyCells(point);
-            }
-
-            return new List<PointI>();
         }
 
         private List<PointI> OpenNearbyCells(PointI point)
@@ -320,16 +319,6 @@ namespace SweeperModel.Elements
             Cells[_lastOpenedPoint.X, _lastOpenedPoint.Y].Status = CellStatus.Covered;
             NonMinesOpened--;
             return _lastOpenedPoint;
-        }
-
-        /// <summary>
-        /// Operation modes
-        /// </summary>
-        public enum Mode
-        {
-            Open,
-            Flag,
-            OpenNearby
         }
     }
 }

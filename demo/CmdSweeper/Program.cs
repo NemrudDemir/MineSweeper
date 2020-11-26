@@ -192,16 +192,16 @@ namespace CmdSweeper
                             break;
                         case ConsoleKey.F:
                         case ConsoleKey.Insert:
-                            changedPoints = _field.DoOperation(_focusedPoint.Point(), Field.Mode.Flag);
+                            changedPoints = _field.DoOperation(_focusedPoint.Point(), FieldMode.Flag);
                             break;
                         case ConsoleKey.Spacebar:
                         case ConsoleKey.Enter:
                             var cell = _field.Cells[_focusedPoint.X, _focusedPoint.Y];
                             var point = _focusedPoint.Point();
                             if(cell.Status == CellStatus.Covered)
-                                changedPoints = _field.DoOperation(point, Field.Mode.Open);
+                                changedPoints = _field.DoOperation(point, FieldMode.Open);
                             else if(cell.Status == CellStatus.Opened)
-                                changedPoints = _field.DoOperation(point, Field.Mode.OpenNearby);
+                                changedPoints = _field.DoOperation(point, FieldMode.OpenNearby);
                             break;
                     }
                 }

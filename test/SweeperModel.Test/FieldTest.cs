@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SweeperModel.Elements;
 
@@ -18,7 +18,7 @@ namespace SweeperModel.Test
             var field = new Field(_size);
             field.InitializeCellValues(new PointI(0, 0));
             var minesCount = field.Cells.OfType<Cell>().Count(cell => cell.Value == CellValue.Mine);
-            Assert.AreEqual(_size.MinesTotal, minesCount);
+            minesCount.Should().Be(_size.MinesTotal);
         }
 
         [TestMethod]
@@ -44,24 +44,24 @@ namespace SweeperModel.Test
         {
             var field = new Field(_size);
             var cells = field.Cells.OfType<Cell>().ToList();
-            Assert.AreEqual(0, cells.Count(cell => cell.Value == CellValue.Mine));
-            field.DoOperation(new PointI(0, 0), Field.Mode.Open);
-            Assert.AreEqual(_size.MinesTotal, cells.Count(cell => cell.Value == CellValue.Mine));
+            cells.Count(cell => cell.Value == CellValue.Mine).Should().Be(0);
+            field.DoOperation(new PointI(0, 0), FieldMode.Open);
+            cells.Count(cell => cell.Value == CellValue.Mine).Should().Be(_size.MinesTotal);
         }
 
         [TestMethod]
         public void OpenCellFirstOpenShouldOpenMoreThanOneCell()
         {
             var field = new Field(_size);
-            var changedCells = field.DoOperation(new PointI(0, 0), Field.Mode.Open);
-            Assert.IsTrue(changedCells.Count > 1);
+            var changedCells = field.DoOperation(new PointI(0, 0), FieldMode.Open);
+            changedCells.Count.Should().BeGreaterThan(0);
         }
 
         [TestMethod]
         public void OpenCellMineOpenShouldBeGameOver()
         {
             var field = new Field(_size);
-            field.DoOperation(new PointI(0, 0), Field.Mode.Flag);
+            field.DoOperation(new PointI(0, 0), FieldMode.Flag);
 
             for(var row = 0; row < field.Cells.GetLength(0); row++)
             {
@@ -70,8 +70,8 @@ namespace SweeperModel.Test
                     var cell = field.Cells[row, column];
                     if(cell.Value == CellValue.Mine)
                     {
-                        field.DoOperation(new PointI(row, column), Field.Mode.Open);
-                        Assert.AreEqual(GameStatus.Lost, field.GameStatus);
+                        field.DoOperation(new PointI(row, column), FieldMode.Open);
+                        field.GameStatus.Should().Be(GameStatus.Lost);
                         return;
                     }
                 }
@@ -84,98 +84,62 @@ namespace SweeperModel.Test
         public void OpenCellOpenAllNonMinesShouldBeGameWon()
         {
             var field = new Field(_size);
-            field.DoOperation(new PointI(0, 0), Field.Mode.Open);
+            field.DoOperation(new PointI(0, 0), FieldMode.Open);
             for(var row = 0; row < field.Cells.GetLength(0); row++)
             {
                 for(var column = 0; column < field.Cells.GetLength(1); column++)
                 {
                     var cell = field.Cells[row, column];
                     if(cell.Value != CellValue.Mine)
-                        field.DoOperation(new PointI(row, column), Field.Mode.Open);
+                        field.DoOperation(new PointI(row, column), FieldMode.Open);
                 }
             }
 
-            Assert.AreEqual(GameStatus.Won, field.GameStatus);
+            field.GameStatus.Should().Be(GameStatus.Won);
         }
 
         [TestMethod]
         public void FlagCellShouldFlagCellAndDecreaseMineLeftCounter()
         {
             var field = new Field(_size);
-            field.DoOperation(new PointI(0, 0), Field.Mode.Flag);
-            Assert.AreEqual(CellStatus.Flagged, field.Cells[0, 0].Status);
-            Assert.AreEqual(_size.MinesTotal - 1, field.MinesLeft);
+            field.DoOperation(new PointI(0, 0), FieldMode.Flag);
+            field.Cells[0, 0].Status.Should().Be(CellStatus.Flagged);
+            field.MinesLeft.Should().Be(_size.MinesTotal - 1);
         }
 
         [TestMethod]
         public void FlagCellTwiceShouldRemoveFlagCell()
         {
             var field = new Field(_size);
-            Assert.AreEqual(_size.MinesTotal, field.MinesLeft);
-            field.DoOperation(new PointI(0, 0), Field.Mode.Flag);
-            field.DoOperation(new PointI(0, 0), Field.Mode.Flag);
-            Assert.AreEqual(CellStatus.Covered, field.Cells[0, 0].Status);
-            Assert.AreEqual(_size.MinesTotal, field.MinesLeft);
+            field.MinesLeft.Should().Be(_size.MinesTotal);
+            field.DoOperation(new PointI(0, 0), FieldMode.Flag);
+            field.DoOperation(new PointI(0, 0), FieldMode.Flag);
+            field.Cells[0, 0].Status.Should().Be(CellStatus.Covered);
+            field.MinesLeft.Should().Be(_size.MinesTotal);
         }
 
         [TestMethod]
         public void OpenNearbyOnCoveredCellShouldOpenCoveredCell()
         {
             var field = new Field(_size);
-            field.DoOperation(new PointI(0, 0), Field.Mode.OpenNearby);
-            Assert.AreEqual(CellStatus.Opened, field.Cells[0, 0].Status);
-        }
-
-        [TestMethod]
-        public void OpenNearbyOnNearbyFlagCountMatchesValueShouldOpenNearbyCovered()
-        {
-            var field = new Field(_size);
-            field.DoOperation(new PointI(0, 0), Field.Mode.Open);
-            for(var row = 0; row < field.Cells.GetLength(0); row++)
-            {
-                for(var column = 0; column < field.Cells.GetLength(1); column++)
-                {
-                    var cell = field.Cells[row, column];
-                    if(cell.Value > CellValue.Empty)
-                    {
-                        var nearbyCellPoints = field.GetNearbyCellPoints(new PointI(row, column)).ToList();
-                        var isCoveredPoint = default(PointI);
-                        foreach(var nearbyPoint in nearbyCellPoints)
-                        {
-                            var nearbyCell = field.Cells[nearbyPoint.X, nearbyPoint.Y];
-                            if(nearbyCell.Value == CellValue.Mine && nearbyCell.Status != CellStatus.Flagged)
-                                field.DoOperation(nearbyPoint, Field.Mode.Flag);
-                            else if(nearbyCell.Status == CellStatus.Covered)
-                                isCoveredPoint = nearbyPoint;
-                        }
-                        if(isCoveredPoint == null) //all open already
-                            continue;
-
-                        Assert.IsTrue(field.Cells[isCoveredPoint.X, isCoveredPoint.Y].Status == CellStatus.Covered);
-                        field.DoOperation(new PointI(row, column), Field.Mode.OpenNearby);
-                        Assert.IsTrue(field.Cells[isCoveredPoint.X, isCoveredPoint.Y].Status == CellStatus.Opened);
-                        return;
-                    }
-                }
-            }
-
-            throw new Exception("Make sure to hit 'return' in the loop");
+            field.DoOperation(new PointI(0, 0), FieldMode.OpenNearby);
+            field.Cells[0, 0].Status.Should().Be(CellStatus.Opened);
         }
 
         [TestMethod]
         public void UndoOnStartedGameShouldNotChangeCells()
         {
             var field = new Field(_size);
-            field.DoOperation(new PointI(0, 0), Field.Mode.Open);
+            field.DoOperation(new PointI(0, 0), FieldMode.Open);
             var changed = field.Undo();
-            Assert.IsNull(changed);
+            changed.Should().BeNull();
         }
 
         [TestMethod]
         public void UndoOnGameOverShouldChangeCell()
         {
             var field = new Field(_size);
-            field.DoOperation(new PointI(0, 0), Field.Mode.Flag);
+            field.DoOperation(new PointI(0, 0), FieldMode.Flag);
             for(var row = 0; row < field.Cells.GetLength(0); row++)
             {
                 for(var column = 0; column < field.Cells.GetLength(1); column++)
@@ -183,10 +147,11 @@ namespace SweeperModel.Test
                     var cell = field.Cells[row, column];
                     if(cell.Value == CellValue.Mine)
                     {
-                        field.DoOperation(new PointI(row, column), Field.Mode.Open);
-                        Assert.AreEqual(GameStatus.Lost, field.GameStatus);
+                        field.DoOperation(new PointI(row, column), FieldMode.Open);
+                        field.GameStatus.Should().Be(GameStatus.Lost);
                         var changedCell = field.Undo();
-                        Assert.IsTrue(changedCell.X == row && changedCell.Y == column);
+                        changedCell.X.Should().Be(row);
+                        changedCell.Y.Should().Be(column);
                         return;
                     }
                 }
@@ -200,16 +165,61 @@ namespace SweeperModel.Test
         {
             var field = new Field(_size);
             Thread.Sleep(100);
-            Assert.AreEqual(0, field.GetElapsedMilliseconds);
+            field.GetElapsedMilliseconds.Should().Be(0);
         }
 
         [TestMethod]
         public void GetElapsedAfterStartShouldBeBiggerThanZero()
         {
             var field = new Field(_size);
-            field.DoOperation(new PointI(0, 0), Field.Mode.Open);
+            field.DoOperation(new PointI(0, 0), FieldMode.Open);
             Thread.Sleep(100);
-            Assert.IsTrue(field.GetElapsedMilliseconds > 0);
+            field.GetElapsedMilliseconds.Should().BeGreaterThan(0);
+        }
+
+        [TestMethod]
+        public void SetUserSettingsShouldSetProperty()
+        {
+            var field = new Field(_size);
+            var settings = new UserSettings();
+            field.UserSettings = settings;
+            field.UserSettings.Should().Be(settings);
+        }
+
+        [TestMethod]
+        public void DoOperationWithInvalidModeShouldReturnEmptyList()
+        {
+            var field = new Field(_size);
+            field.DoOperation(new PointI(0, 0), (FieldMode)(-1)).Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void DoOperationWithOpenNearbyModeOnFlaggedCellShouldReturnEmptyList()
+        {
+            var field = new Field(_size);
+            var point = new PointI(0, 0);
+            field.DoOperation(point, FieldMode.Flag);
+            field.DoOperation(point, FieldMode.OpenNearby).Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void DoOperationOnNonRunningGameShouldReturnEmptyList()
+        {
+            var field = new Field(_size);
+            field.DoOperation(new PointI(0, 0), FieldMode.Open);
+            for(var x = 0; x<_size.X; x++)
+                for(var y = 0; y<_size.Y; y++)
+                    if(field.Cells[x, y].Value != CellValue.Mine)
+                        field.DoOperation(new PointI(x, y), FieldMode.Open);
+
+            field.GameStatus.Should().Be(GameStatus.Won);
+            var minePoint = default(PointI);
+            for(var x = 0; x < _size.X; x++)
+                for(var y = 0; y < _size.Y; y++)
+                    if(field.Cells[x, y].Value == CellValue.Mine)
+                        minePoint = new PointI(x, y);
+
+            field.DoOperation(minePoint, FieldMode.Open).Should().BeEmpty();
         }
     }
 }

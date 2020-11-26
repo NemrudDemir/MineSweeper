@@ -1,5 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SweeperModel.Exceptions;
+using System;
+using System.Linq;
 
 namespace SweeperModel.Test
 {
@@ -15,9 +18,9 @@ namespace SweeperModel.Test
         {
             var size = new FieldSize(X, Y, MINES);
 
-            Assert.AreEqual(X, size.X);
-            Assert.AreEqual(Y, size.Y);
-            Assert.AreEqual(MINES, size.MinesTotal);
+            size.X.Should().Be(X);
+            size.Y.Should().Be(Y);
+            size.MinesTotal.Should().Be(MINES);
         }
 
         [TestMethod]
@@ -40,7 +43,20 @@ namespace SweeperModel.Test
         [DataRow(X, 0, MINES)]
         public void CreateFieldSizeWithInvalidOptionsShouldThrow(int x, int y, int mines)
         {
-            Assert.ThrowsException<InvalidFieldSizeException>(() => new FieldSize(x, y, mines));
+            Action creatingFieldSize = () => new FieldSize(x, y, mines);
+            creatingFieldSize.Should().Throw<InvalidFieldSizeException>();
+        }
+
+        [TestMethod]
+        public void StandardsShouldReturnFields()
+        {
+            FieldSize.Standards.Count().Should().BePositive();
+        }
+
+        [TestMethod]
+        public void ToStringShouldNotBeNullOrEmpty()
+        {
+            new FieldSize(X, Y, MINES).ToString().Should().NotBeNullOrEmpty();
         }
     }
 }

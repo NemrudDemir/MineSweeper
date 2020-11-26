@@ -37,7 +37,7 @@ namespace WpfSweeper
         {
             sldMines.Minimum = FieldSize.GetMinMines();
             var maxMines = FieldSize.GetMaxMines((int)sldWidth.Value, (int)sldHeight.Value);
-            if (sldMines.Value > maxMines)
+            if(sldMines.Value > maxMines)
                 sldMines.Value = maxMines;
             sldMines.Maximum = maxMines;
         }
@@ -59,7 +59,7 @@ namespace WpfSweeper
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (DialogResult == null)
+            if(DialogResult == null)
                 DialogResult = false;
         }
 

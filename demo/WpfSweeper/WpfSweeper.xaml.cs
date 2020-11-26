@@ -15,8 +15,8 @@ namespace WpfSweeper
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const double CellPixels = 32;
-        private const double LineThickness = 1;
+        private const double CELL_PIXELS = 32;
+        private const double LINE_THICKNESS = 1;
         private Field Field { get; set; }
         private DispatcherTimer UpdateTimer { get; }
 
@@ -29,7 +29,7 @@ namespace WpfSweeper
             UpdateTimer.Interval = TimeSpan.FromMilliseconds(100);
             UpdateTimer.Start();
             GenerateMenu(); //dynamically generating the menu
-            SetField(Field.GetStandardsField(Field.Standards.Beginner)); //Initialize field
+            SetField(); //Initialize field
         }
 
         /// <summary>
@@ -45,22 +45,22 @@ namespace WpfSweeper
             seconds %= 60;
             lblTimer.Content = $"{minutes:00}:{seconds:00}"; //Format is mm:ss
         }
-        
+
         /// <summary>
         /// Dynamically generate the menu
         /// </summary>
         private void GenerateMenu()
         {
             //add the predefined fields menu items
-            foreach (Field.Standards predefinedField in Enum.GetValues(typeof(Field.Standards))) {
-                var mnuItem = new MenuItemNewField(predefinedField) {
-                    Header = predefinedField,
-                };
+            foreach(var predefinedFieldSize in FieldSize.Standards)
+            {
+                var mnuItem = new MenuItemNewField(predefinedFieldSize);
                 mnuItem.Click += mnuNewPredefinedField_Click;
                 mnuNew.Items.Add(mnuItem);
             }
             //add the customize menu item
-            var mnuCustomized = new MenuItem() {
+            var mnuCustomized = new MenuItem()
+            {
                 Header = "Custom"
             };
             mnuCustomized.Click += mnuCustomized_Click;
@@ -69,9 +69,19 @@ namespace WpfSweeper
 
         private void mnuCustomized_Click(object sender, RoutedEventArgs e)
         {
-            var customizeForm = new CustomizeField(Field);
-            if (customizeForm.ShowDialog() == true)
-                SetField(customizeForm.GetWidth(), customizeForm.GetHeight(), customizeForm.GetMines());
+            var customizeForm = new CustomizeFieldSize(Field.Size);
+            if(customizeForm.ShowDialog() == true)
+                SetField(new FieldSize(customizeForm.GetWidth(), customizeForm.GetHeight(), customizeForm.GetMines()));
+        }
+
+        private void SetField()
+        {
+            SetField(FieldSize.Beginner);
+        }
+
+        private void SetField(FieldSize size)
+        {
+            SetField(new Field(size));
         }
 
         /// <summary>
@@ -90,59 +100,55 @@ namespace WpfSweeper
         private void InitDraw()
         {
             cnvField.Children.Clear();
-            lblMines.Content = Field.MinesTotal;
+            lblMines.Content = Field.MinesLeft;
 
-            var canvasWidth = Field.X * (CellPixels + LineThickness) + LineThickness;
-            var canvasHeight = Field.Y * (CellPixels + LineThickness) + LineThickness;
+            var canvasWidth = Field.Size.X * (CELL_PIXELS + LINE_THICKNESS) + LINE_THICKNESS;
+            var canvasHeight = Field.Size.Y * (CELL_PIXELS + LINE_THICKNESS) + LINE_THICKNESS;
 
             Width = canvasWidth + cnvField.Margin.Left + cnvField.Margin.Right + 7 + 7;
             Height = canvasHeight + cnvField.Margin.Top + cnvField.Margin.Bottom + 7 + 30;
 
-            for (var x = 0; x < Field.X; x++) {
-                for (var y = 0; y < Field.Y; y++) {
-                    var image = new Image {
-                        Width = CellPixels,
-                        Height = CellPixels,
+            for(var x = 0; x < Field.Size.X; x++)
+            {
+                for(var y = 0; y < Field.Size.Y; y++)
+                {
+                    var image = new Image
+                    {
+                        Width = CELL_PIXELS,
+                        Height = CELL_PIXELS,
                         Source = new BitmapImage(new Uri(@"pack://Application:,,,/Ressources/Cell.png", UriKind.Absolute))
                     };
                     cnvField.Children.Add(image);
-                    Canvas.SetTop(image, y*(CellPixels + LineThickness));
-                    Canvas.SetLeft(image, x*(CellPixels + LineThickness));
+                    Canvas.SetTop(image, y * (CELL_PIXELS + LINE_THICKNESS));
+                    Canvas.SetLeft(image, x * (CELL_PIXELS + LINE_THICKNESS));
                 }
             }
             UpdateStatus();
         }
 
-        /// <summary>
-        /// New game field
-        /// </summary>
-        /// <param name="x">width</param>
-        /// <param name="y">height</param>
-        /// <param name="mines">mines</param>
-        private void SetField(int x, int y, int mines)
-        {
-            SetField(new Field(x, y, mines));
-        }
-
         private void mnuNewPredefinedField_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is MenuItemNewField mnuItem)
-                SetField(Field.GetStandardsField(mnuItem.FieldType));
+            if(sender is MenuItemNewField mnuItem)
+                SetField(mnuItem.FieldSize);
         }
 
         private void cnvField_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (GetFieldAt(e.GetPosition(cnvField)) is PointI fieldPoint)
+            if(GetFieldAt(e.GetPosition(cnvField)) is PointI fieldPoint)
                 UpdateGame(Field.DoOperation(fieldPoint, Field.Mode.Flag));
         }
 
         private void cnvField_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left && e.ClickCount == 2) {
-                if (GetFieldAt(e.GetPosition(cnvField)) is PointI fieldPoint) {
+            if(e.ChangedButton == MouseButton.Left && e.ClickCount == 2)
+            {
+                if(GetFieldAt(e.GetPosition(cnvField)) is PointI fieldPoint)
+                {
                     UpdateGame(Field.DoOperation(fieldPoint, Field.Mode.OpenNearby));
                 }
-            } else {
+            }
+            else
+            {
                 cmdStatus.Content = ":O";
             }
             e.Handled = true;
@@ -156,13 +162,15 @@ namespace WpfSweeper
         {
             var cells = Field.Cells;
             lblMines.Content = Field.MinesLeft;
-            foreach (var point in changedCells) {
-                var cell = cells[point.X][point.Y];
-                var image = new Image {
-                    Width = CellPixels,
-                    Height = CellPixels,
+            foreach(var point in changedCells)
+            {
+                var cell = cells[point.X, point.Y];
+                var image = new Image
+                {
+                    Width = CELL_PIXELS,
+                    Height = CELL_PIXELS,
                 };
-                switch (cell.Status)
+                switch(cell.Status)
                 {
                     case CellStatus.Covered:
                         image.Source = new BitmapImage(new Uri(@"pack://Application:,,,/Ressources/Cell.png", UriKind.Absolute));
@@ -175,8 +183,8 @@ namespace WpfSweeper
                         break;
                 }
                 cnvField.Children.Add(image);
-                Canvas.SetTop(image, point.Y * (CellPixels + LineThickness));
-                Canvas.SetLeft(image, point.X * (CellPixels + LineThickness));
+                Canvas.SetTop(image, point.Y * (CELL_PIXELS + LINE_THICKNESS));
+                Canvas.SetLeft(image, point.X * (CELL_PIXELS + LINE_THICKNESS));
             }
             UpdateStatus();
         }
@@ -184,7 +192,8 @@ namespace WpfSweeper
         private void UpdateGame(PointI changedCell)
         {
             var changedCells = new List<PointI>();
-            if(changedCell != null) {
+            if(changedCell != null)
+            {
                 changedCells.Add(changedCell);
             }
             UpdateGame(changedCells);
@@ -196,15 +205,20 @@ namespace WpfSweeper
         private void UpdateGameOver()
         {
             var cells = Field.Cells;
-            for(var x = 0; x<cells.Length; x++) {
-                for(var y = 0; y<cells[x].Length; y++) {
-                    var cell = cells[x][y];
-                    if(cell.Value == CellValue.Mine) {
-                        var image = new Image {
-                            Width = CellPixels,
-                            Height = CellPixels,
+            for(var x = 0; x < cells.GetLength(0); x++)
+            {
+                for(var y = 0; y < cells.GetLength(1); y++)
+                {
+                    var cell = cells[x, y];
+                    if(cell.Value == CellValue.Mine)
+                    {
+                        var image = new Image
+                        {
+                            Width = CELL_PIXELS,
+                            Height = CELL_PIXELS,
                         };
-                        switch (cell.Status) {
+                        switch(cell.Status)
+                        {
                             case CellStatus.Covered: //show mine
                                 image.Source = new BitmapImage(new Uri(@"pack://Application:,,,/Ressources/-1.png", UriKind.Absolute));
                                 break;
@@ -213,17 +227,20 @@ namespace WpfSweeper
                                 break;
                         }
                         cnvField.Children.Add(image);
-                        Canvas.SetTop(image, y * (CellPixels + LineThickness));
-                        Canvas.SetLeft(image, x * (CellPixels + LineThickness));
-                    } else if(cell.Status == CellStatus.Flagged && cell.Value != CellValue.Mine) { //wrong flagged cells
-                        var image = new Image {
-                            Width = CellPixels,
-                            Height = CellPixels,
+                        Canvas.SetTop(image, y * (CELL_PIXELS + LINE_THICKNESS));
+                        Canvas.SetLeft(image, x * (CELL_PIXELS + LINE_THICKNESS));
+                    }
+                    else if(cell.Status == CellStatus.Flagged && cell.Value != CellValue.Mine)
+                    { //wrong flagged cells
+                        var image = new Image
+                        {
+                            Width = CELL_PIXELS,
+                            Height = CELL_PIXELS,
                             Source = new BitmapImage(new Uri(@"pack://Application:,,,/Ressources/mineX.png", UriKind.Absolute))
                         };
                         cnvField.Children.Add(image);
-                        Canvas.SetTop(image, y * (CellPixels + LineThickness));
-                        Canvas.SetLeft(image, x * (CellPixels + LineThickness));
+                        Canvas.SetTop(image, y * (CELL_PIXELS + LINE_THICKNESS));
+                        Canvas.SetLeft(image, x * (CELL_PIXELS + LINE_THICKNESS));
                     }
                 }
             }
@@ -234,9 +251,9 @@ namespace WpfSweeper
         /// </summary>
         /// <param name="mousePosition"></param>
         /// <returns></returns>
-        private PointI GetFieldAt(Point mousePosition)
+        private static PointI GetFieldAt(Point mousePosition)
         {
-            var divisor = CellPixels + LineThickness;
+            const double divisor = CELL_PIXELS + LINE_THICKNESS;
             var x = (int)(mousePosition.X / divisor);
             var y = (int)(mousePosition.Y / divisor);
             return new PointI(x, y);
@@ -244,7 +261,8 @@ namespace WpfSweeper
 
         private void cnvField_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (GetFieldAt(e.GetPosition(cnvField)) is PointI fieldPoint) {
+            if(GetFieldAt(e.GetPosition(cnvField)) is PointI fieldPoint)
+            {
                 UpdateGame(Field.DoOperation(fieldPoint, Field.Mode.Open));
             }
         }
@@ -254,26 +272,35 @@ namespace WpfSweeper
         /// </summary>
         private void UpdateStatus()
         {
-            if(Field.GameStatus == GameStatus.Lost) {
+            if(Field.GameStatus == GameStatus.Lost)
+            {
                 cmdStatus.Content = ":(";
-                if(new GameOver(Field.GetElapsedMilliseconds).ShowDialog() == true) { //Game over
+                if(new GameOver(Field.GetElapsedMilliseconds).ShowDialog() == true)
+                { //Game over
                     UpdateGameOver();
-                } else { //Undo
+                }
+                else
+                { //Undo
                     UpdateGame(Field.Undo());
                 }
-            } else if(Field.GameStatus == GameStatus.Won) {
+            }
+            else if(Field.GameStatus == GameStatus.Won)
+            {
                 cmdStatus.Content = "B)";
-                if((new GameWon(Field.GetElapsedMilliseconds).ShowDialog()) == true) {
-                    SetField(Field.X, Field.Y, Field.MinesTotal);
+                if((new GameWon(Field.GetElapsedMilliseconds).ShowDialog()) == true)
+                {
+                    SetField(Field.Size);
                 }
-            } else {
+            }
+            else
+            {
                 cmdStatus.Content = ":)";
             }
         }
 
         private void cmdStatus_Click(object sender, RoutedEventArgs e)
         {
-            SetField(Field.X, Field.Y, Field.MinesTotal);
+            SetField(Field.Size);
         }
     }
 }

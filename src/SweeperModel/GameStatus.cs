@@ -2,7 +2,7 @@
 {
     public enum GameStatus
     {
-        Open,
+        Running,
         Won,
         Lost
     }

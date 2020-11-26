@@ -1,20 +1,20 @@
 ﻿using SweeperModel;
-using SweeperModel.Elements;
 
 namespace WpfSweeper
 {
     /// <summary>
     /// Menu items for the predefined standard fields
     /// </summary>
-    class MenuItemNewField : System.Windows.Controls.MenuItem
+    internal class MenuItemNewField : System.Windows.Controls.MenuItem
     {
-        public Field.Standards FieldType {
+        public FieldSize FieldSize {
             get;
         }
 
-        public MenuItemNewField(Field.Standards fieldType) : base()
+        public MenuItemNewField(FieldSize fieldSize)
         {
-            FieldType = fieldType;
+            FieldSize = fieldSize;
+            Header = fieldSize.Name;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace WpfSweeper
             seconds %= 60;
             lblTime.Content = $"{minutes:00}:{seconds:00}"; //format is mm:ss
         }
-        
+
         private void cmdGameOver_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;

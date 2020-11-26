@@ -56,7 +56,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="CustomizeField.xaml">
+    <Page Include="CustomizeFieldSize.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -76,8 +76,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CustomizeField.xaml.cs">
-      <DependentUpon>CustomizeField.xaml</DependentUpon>
+    <Compile Include="CustomizeFieldSize.xaml.cs">
+      <DependentUpon>CustomizeFieldSize.xaml</DependentUpon>
     </Compile>
     <Compile Include="GameOver.xaml.cs">
       <DependentUpon>GameOver.xaml</DependentUpon>

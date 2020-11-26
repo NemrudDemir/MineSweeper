@@ -13,7 +13,7 @@
         </div>
     </div>
     <div style="background-color:gray; display: block; position: relative; margin: 0 auto" oncontextmenu="return false;">
-        @if (Field.GameStatus != GameStatus.Open && !ShowMines && !ShowGameField) //when mines are shown dont show overlay
+        @if(Field.GameStatus != GameStatus.Running && !ShowMines && !ShowGameField) //when mines are shown dont show overlay
         {
             <div id="gameOverlay" style="position: absolute; top: 50%; transform: translateY(-50%); left: 0; width: 100%;
                 text-align: center; background-color: rgb(0, 0, 0); /*fallback*/ background-color: rgba(0, 0, 0, 0.75); color: white;">
@@ -34,16 +34,16 @@
                 </button>
             </div>
         }
-        @for (var y = 0; y < Field.Y; y++)
+        @for(var y = 0; y < Field.Size.Y; y++)
         {
             int y2 = y;
             <div style="margin-top: 1px; display: flex">
-                @for (var x = 0; x < Field.X; x++)
+                @for(var x = 0; x < Field.Size.X; x++)
                 {
                     int x2 = x;
-                    var cell = Field.Cells[x][y];
+                    var cell = Field.Cells[x, y];
                     var imageName = "";
-                    switch (cell.Status)
+                    switch(cell.Status)
                     {
                         case CellStatus.Covered:
                             imageName = "Cell.png";
@@ -55,11 +55,11 @@
                             imageName = $"{(int)cell.Value}.png";
                             break;
                     }
-                    if (ShowMines)
+                    if(ShowMines)
                     {
-                        if (cell.Value == CellValue.Mine)
+                        if(cell.Value == CellValue.Mine)
                         {
-                            switch (cell.Status)
+                            switch(cell.Status)
                             {
                                 case CellStatus.Covered: //show mine
                                     imageName = "-1.png";
@@ -69,7 +69,7 @@
                                     break;
                             }
                         }
-                        else if (cell.Status == CellStatus.Flagged && cell.Value != CellValue.Mine)
+                        else if(cell.Status == CellStatus.Flagged && cell.Value != CellValue.Mine)
                         { //wrong flagged cells
                             imageName = "mineX.png";
                         }
@@ -91,10 +91,10 @@
 <div style="text-align: center; margin-top: 10px">
     <h3>New Game</h3>
     <div id="fieldButtons" style="display: table; margin: 0 auto">
-        <button @onclick="(() => NewGame(Field.X, Field.Y, Field.MinesTotal))">Same size</button>
-        @foreach (Field.Standards predefinedField in Enum.GetValues(typeof(Field.Standards)))
+        <button @onclick="(() => NewGame(Field.Size))">Same size</button>
+        @foreach(FieldSize predefinedSize in FieldSize.Standards)
         {
-            <button @onclick="(() => NewGame(predefinedField))">@predefinedField.ToString()</button>
+            <button @onclick="(() => NewGame(predefinedSize))">@predefinedSize.ToString()</button>
         }
         <button @onclick="(() => ShowCustomGameOptions = !ShowCustomGameOptions)">Custom</button>
         <div style="width: 100%; @(ShowCustomGameOptions ? "" : "display: none;")">
@@ -123,20 +123,17 @@
     private ClickMode Mode { get; set; }
     private Field _field;
 
-    private Field Field
-    {
-        get
-        {
-            if (_field == null)
-                Field = Field.GetStandardsField(Field.Standards.Beginner);
+    private Field Field {
+        get {
+            if(_field == null)
+                Field = new Field(FieldSize.Beginner);
             return _field;
         }
-        set
-        {
+        set {
             _field = value;
             ShowMines = false;
             ShowGameField = false;
-            CustomGame = (value.X, value.Y, value.MinesTotal);
+            CustomGame = (value.Size.X, value.Size.Y, value.Size.MinesTotal);
         }
     }
 
@@ -165,29 +162,31 @@
         StateHasChanged();
     }
 
-    private void NewGame(Field.Standards predefined)
+    private void NewGame(FieldSize fieldSize)
     {
-        Field = Field.GetStandardsField(predefined);
+        Field = new Field(fieldSize);
     }
 
     private void NewGame(int x, int y, int mines)
     {
-        x = Math.Min(x, Field.MAX_XY);
-        y = Math.Min(y, Field.MAX_XY);
-        x = Math.Max(x, Field.MIN_XY);
-        y = Math.Max(y, Field.MIN_XY);
-        mines = Math.Min(mines, Field.GetMaxMines(x, y));
-        mines = Math.Max(mines, Field.GetMinMines());
-        Field = new Field(x, y, mines);
+        x = Math.Min(x, FieldSize.MAX_XY);
+        y = Math.Min(y, FieldSize.MAX_XY);
+        x = Math.Max(x, FieldSize.MIN_XY);
+        y = Math.Max(y, FieldSize.MIN_XY);
+        mines = Math.Min(mines, FieldSize.GetMaxMines(x, y));
+        mines = Math.Max(mines, FieldSize.GetMinMines());
+        var fieldSize = new FieldSize(x, y, mines);
+        NewGame(fieldSize);
     }
 
     private void FieldClick(int x, int y)
-    {   
-        if (Field.Cells[x][y].Status == CellStatus.Opened) {
+    {
+        if(Field.Cells[x, y].Status == CellStatus.Opened)
+        {
             Field.DoOperation(new PointI(x, y), Field.Mode.OpenNearby);
             return;
         }
-        if (Mode == ClickMode.Open)
+        if(Mode == ClickMode.Open)
             OpenField(x, y);
         else
             FlagField(x, y);
@@ -195,7 +194,7 @@
 
     private void FieldRightClick(int x, int y)
     {
-        if (Mode == ClickMode.Open)
+        if(Mode == ClickMode.Open)
             FlagField(x, y);
         else
             OpenField(x, y);
@@ -213,17 +212,17 @@
 
     private void GameEndLeftButton(GameStatus status)
     {
-        if (status == GameStatus.Won)
-            NewGame(Field.X, Field.Y, Field.MinesTotal);
-        else if (status == GameStatus.Lost)
+        if(status == GameStatus.Won)
+            NewGame(Field.Size);
+        else if(status == GameStatus.Lost)
             ShowMines = true;
     }
 
     private void GameEndRightButton(GameStatus status)
     {
-        if (status == GameStatus.Won)
+        if(status == GameStatus.Won)
             ShowGameField = true;
-        else if (status == GameStatus.Lost) //undo last move
+        else if(status == GameStatus.Lost) //undo last move
             Field.Undo();
     }
 

@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:WpfSweeper"
              StartupUri="WpfSweeper.xaml">
     <Application.Resources>
-         
+
     </Application.Resources>
 </Application>
